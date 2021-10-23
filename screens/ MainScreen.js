@@ -1,17 +1,22 @@
 import { useNavigation } from '@react-navigation/native';
-import React from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import transparent_logo from '../assets/full_logo_transparent.png';
+import ContactBox from '../components/ContactBox';
 import GreyBox from '../components/GreyBox';
 import Screen from '../components/Screen';
 
 export default function MainScreen() {
+  const [showContactBox, setShowContactBox] = useState(true);
   return (
-    <Screen>
+    // <Screen>
+    <ScrollView>
       <Image source={transparent_logo} style={style.logo} />
       <Text style={style.header}>Welcome, placeholder!</Text>
       <GreyBox />
-    </Screen>
+      {showContactBox && <ContactBox />}
+    </ScrollView>
+    // </Screen>
   );
 }
 
