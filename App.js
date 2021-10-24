@@ -4,9 +4,9 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import React, { Fragment } from 'react';
+import React, { Fragment, useState } from 'react';
 import MainScreen from './screens/ MainScreen';
-import SignIn from './screens/Sign';
+import SignIn from './screens/SignInScreen';
 
 SplashScreen.preventAutoHideAsync();
 setTimeout(SplashScreen.hideAsync, 3000);
@@ -17,18 +17,30 @@ export default function App() {
   const [loaded] = useFonts({
     Fredoka: require('./assets/fonts/FredokaOne-Regular.ttf'),
   });
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   return (
     <Fragment>
       <StatusBar style="light" />
       <NavigationContainer>
         <Stack.Navigator
-          initialRouteName="main-screen"
+          initialRouteName="sign-in"
           screenOptions={{
             headerShown: false,
           }}
         >
-          <Stack.Screen name="sign-in" component={SignIn} />
-          <Stack.Screen name="main-screen" component={MainScreen} />
+          <Stack.Screen name="sign-in">
+            {(props) => (
+              <SignIn setIsLoggedIn={setIsLoggedIn} isLoggedIn={isLoggedIn} />
+            )}
+          </Stack.Screen>
+          <Stack.Screen name="main-screen">
+            {(props) => (
+              <MainScreen
+                setIsLoggedIn={setIsLoggedIn}
+                isLoggedIn={isLoggedIn}
+              />
+            )}
+          </Stack.Screen>
         </Stack.Navigator>
       </NavigationContainer>
     </Fragment>

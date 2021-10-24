@@ -8,7 +8,13 @@ import globe_icon from '../assets/globe-icon.png';
 import plane_icon from '../assets/plane-icon.png';
 import settings_icon from '../assets/settings-icon.png';
 
-export default function GreyBox() {
+export default function GreyBox(props) {
+  const navigation = useNavigation();
+  const handleLogOutPress = () => {
+    props.setIsLoggedIn(false);
+    navigation.navigate('sign-in');
+  };
+
   return (
     <View style={style.grey_box}>
       <View style={style.tile_box}>
@@ -30,7 +36,13 @@ export default function GreyBox() {
           <Image source={bird_icon} style={style.image_bird} />
           <Text style={style.text_bird}>Premium</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={style.tile}>
+        <TouchableOpacity
+          style={[
+            style.tile,
+            props.showContactBox && { backgroundColor: 'white' },
+          ]}
+          onPress={props.handleContactPress}
+        >
           <Image source={contact_icon} style={style.image} />
           <Text style={style.text}>Contact</Text>
         </TouchableOpacity>
@@ -39,7 +51,7 @@ export default function GreyBox() {
           <Text style={style.text}>Settings</Text>
         </TouchableOpacity>
       </View>
-      <TouchableOpacity style={style.log_out}>
+      <TouchableOpacity style={style.log_out} onPress={handleLogOutPress}>
         <Text style={style.log_out_text}>Log out</Text>
       </TouchableOpacity>
     </View>

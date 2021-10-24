@@ -6,14 +6,21 @@ import ContactBox from '../components/ContactBox';
 import GreyBox from '../components/GreyBox';
 import Screen from '../components/Screen';
 
-export default function MainScreen() {
-  const [showContactBox, setShowContactBox] = useState(true);
+export default function MainScreen(props) {
+  const [showContactBox, setShowContactBox] = useState(false);
+  const handleContactPress = () => {
+    setShowContactBox((previous) => !previous);
+  };
   return (
     // <Screen>
     <ScrollView>
       <Image source={transparent_logo} style={style.logo} />
       <Text style={style.header}>Welcome, placeholder!</Text>
-      <GreyBox />
+      <GreyBox
+        showContactBox={showContactBox}
+        setIsLoggedIn={props.setIsLoggedIn}
+        handleContactPress={handleContactPress}
+      />
       {showContactBox && <ContactBox />}
     </ScrollView>
     // </Screen>
