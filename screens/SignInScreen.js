@@ -33,7 +33,7 @@ export default function SignIn(props) {
         // Accept: 'application/json',
       },
       body: JSON.stringify({
-        query: `query {customer(search: {number: \"${enteredNumber}\"}) {password}}`,
+        query: `query {customer(search: {number: [\"${enteredNumber}\", \"${enteredPassword}\"]) {first_name}`,
       }),
     })
       .then((response) => response.json())
