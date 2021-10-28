@@ -14,7 +14,7 @@ import Screen from '../components/Screen';
 
 export default function SignIn(props) {
   const [isLoading, setIsLoading] = useState(false);
-  const [accessDenied, setAccessDenied] = useState(true);
+  const [accessDenied, setAccessDenied] = useState(false);
   const [numberInput, setNumberInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   const [serverError, setServerError] = useState(false);
@@ -33,12 +33,16 @@ export default function SignIn(props) {
         // Accept: 'application/json',
       },
       body: JSON.stringify({
-        query: `query {customer(search: {number: [\"${enteredNumber}\", \"${enteredPassword}\"]) {first_name}`,
+        query: `query {customer(search: {number: [\"${enteredNumber}\", \"${enteredPassword}\"]}) {first_name}}`,
       }),
     })
-      .then((response) => response.json())
+      .then((response) => {
+        if (response.ok) return response.json();
+        setServerError(true);
+        throw new Error('Server Error');
+      })
       .then((data) => {
-        if (data.data.customer.password === enteredPassword) {
+        if (!data.errors) {
           console.log('data in success ', data);
           setAccessDenied(false);
           props.setIsLoggedIn(true);
@@ -52,6 +56,7 @@ export default function SignIn(props) {
         return;
       })
       .catch((err) => {
+        // server error
         setAccessDenied(false);
         setServerError(true);
         console.log('err ', err);
