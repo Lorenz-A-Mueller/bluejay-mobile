@@ -3,10 +3,14 @@ import {
   ApolloProvider,
   gql,
   InMemoryCache,
+  useApolloClient,
+  useLazyQuery,
   useQuery,
 } from '@apollo/client';
+// import { useLazyQuery } from '@apollo/react-hooks';
+// useLazyQuery, in contrast to useQuery, does not automatically run when component is mounted
 import { NavigationContainer, useNavigation } from '@react-navigation/native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Image,
   StyleSheet,
@@ -20,74 +24,115 @@ import loading_spinner from '../assets/spinner.gif';
 import Screen from '../components/Screen';
 
 const testQuery = gql`
-  query {
-    employees {
+  query ($userNumber: String!, $userPassword: String!) {
+    customer(search: { number: [$userNumber, $userPassword] }) {
       last_name
     }
   }
 `;
 
+// const testQuery = gql`
+//   query {
+//     customer(search: { number: ["0000000001", "MyTestPassword1"] }) {
+//       last_name
+//     }
+//   }
+// `;
+
 export default function SignIn(props) {
-  const { loading, error, data } = useQuery(testQuery);
-  console.log(data);
+  // const { loading, error, data } = useQuery(testQuery);
+  // console.log(data);
 
   const [isLoading, setIsLoading] = useState(false);
   const [accessDenied, setAccessDenied] = useState(false);
   const [numberInput, setNumberInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   const [serverError, setServerError] = useState(false);
+  const [wasClicked, setWasClicked] = useState(false);
   const navigation = useNavigation();
 
-  const handleSignInPress = async (enteredNumber, enteredPassword) => {
-    alert(data);
-    return;
+  // graphQL hook
 
-    // setServerError(false);
-    // console.log('Attempting POST request to server...');
-    // console.log('enteredNumber: ', enteredNumber);
-    // console.log('enteredPassword: ', enteredPassword);
-    // const url = 'http://localhost:4000/graphql';
-    // // const url = 'https://api-bluejay.herokuapp.com/';
-    // const response = await fetch(url, {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     // Accept: 'application/json',
-    //   },
-    //   body: JSON.stringify({
-    //     query: `query {customer(search: {number: [\"${enteredNumber}\", \"${enteredPassword}\"]}) {first_name}}`,
-    //   }),
-    // })
-    //   .then((response) => {
-    //     if (response.ok) return response.json();
-    //     setServerError(true);
-    //     throw new Error('Server Error');
-    //   })
-    //   .then((data) => {
-    //     if (!data.errors) {
-    //       console.log('data in success ', data);
-    //       setAccessDenied(false);
-    //       props.setIsLoggedIn(true);
-    //       setNumberInput('');
-    //       setPasswordInput('');
-    //       navigation.navigate('main-screen');
-    //       return;
-    //     }
-    //     setAccessDenied(true);
-    //     console.log('data in refuse', data);
-    //     return;
-    //   })
-    //   .catch((err) => {
-    //     // server error
-    //     setAccessDenied(false);
-    //     setServerError(true);
-    //     console.log('err ', err);
-    //     const message = `An Error has occurred: ${err.status}`;
-    //     // alert(`An Error has occurred: ${err.status}`);
-    //     throw new Error(message);
-    //   });
-    // return;
+  const { loading, error, data } = useQuery(testQuery, {
+    variables: {
+      userNumber: numberInput,
+      userPassword: passwordInput,
+    },
+    onCompleted: () => setWasClicked(false),
+    onError: () => setWasClicked(false),
+    skip: !wasClicked,
+  });
+
+  // const client = useApolloClient();
+  // const [login, { loading, error, data }] = useLazyQuery(testQuery, {
+  //   variables: { userNumber: numberInput, password: passwordInput },
+  // });
+  if (loading) {
+    console.log('is loading');
+  }
+  if (error) {
+    console.log(error);
+  }
+  if (data) {
+    console.log(data);
+  }
+
+  const handleSignInPress = () => {
+    setWasClicked(true);
   };
+
+  // useEffect(() => {
+  //   if (setWasClicked) {
+  //     setWasClicked(false);
+  //   }
+  // }, [wasClicked]);
+
+  // const { loading, error, data } = useQuery(testQuery);
+
+  // const handleSignInPress = async (enteredNumber, enteredPassword) => {
+  //   // alert(data);
+  //   login({
+  //     variables: { userNumber: numberInput, userPassword: passwordInput },
+  //   });
+
+  //   console.log(data);
+  //   return;
+
+  //   setServerError(false);
+  // console.log('Attempting POST request to server...');
+  // console.log('enteredNumber: ', enteredNumber);
+  // console.log('enteredPassword: ', enteredPassword);
+
+  //   .then((response) => {
+  //     if (response.ok) return response.json();
+  //     setServerError(true);
+  //     throw new Error('Server Error');
+  //   })
+  //   .then((data) => {
+  //     if (!data.errors) {
+  //       console.log('data in success ', data);
+  //       setAccessDenied(false);
+  //       props.setIsLoggedIn(true);
+  //       setNumberInput('');
+  //       setPasswordInput('');
+  //       navigation.navigate('main-screen');
+  //       return;
+  //     }
+  //     setAccessDenied(true);
+  //     console.log('data in refuse', data);
+  //     return;
+  //   })
+  //   .catch((err) => {
+  //     // server error
+  //     setAccessDenied(false);
+  //     setServerError(true);
+  //     console.log('err ', err);
+  //     const message = `An Error has occurred: ${err.status}`;
+  //     // alert(`An Error has occurred: ${err.status}`);
+  //     throw new Error(message);
+  //   });
+  // return;
+  // };
 
   const handleNumberInputChange = (text) => {
     setNumberInput(text);
@@ -130,10 +175,7 @@ export default function SignIn(props) {
             {serverError && (
               <Text style={style.error_text}>Error! Please try later! </Text>
             )}
-            <TouchableOpacity
-              style={style.button}
-              onPress={() => handleSignInPress(numberInput, passwordInput)}
-            >
+            <TouchableOpacity style={style.button} onPress={handleSignInPress}>
               <Text style={style.button_text}>SIGN IN</Text>
             </TouchableOpacity>
             <Text style={style.need_help}>Need help?</Text>
