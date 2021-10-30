@@ -1,3 +1,10 @@
+import {
+  ApolloClient,
+  ApolloProvider,
+  gql,
+  InMemoryCache,
+  useQuery,
+} from '@apollo/client';
 import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
 import {
@@ -12,7 +19,18 @@ import transparent_logo from '../assets/full_logo_transparent.png';
 import loading_spinner from '../assets/spinner.gif';
 import Screen from '../components/Screen';
 
+const testQuery = gql`
+  query {
+    employees {
+      last_name
+    }
+  }
+`;
+
 export default function SignIn(props) {
+  const { loading, error, data } = useQuery(testQuery);
+  console.log(data);
+
   const [isLoading, setIsLoading] = useState(false);
   const [accessDenied, setAccessDenied] = useState(false);
   const [numberInput, setNumberInput] = useState('');
@@ -21,50 +39,54 @@ export default function SignIn(props) {
   const navigation = useNavigation();
 
   const handleSignInPress = async (enteredNumber, enteredPassword) => {
-    // setServerError(false);
-    console.log('Attempting POST request to server...');
-    console.log('enteredNumber: ', enteredNumber);
-    console.log('enteredPassword: ', enteredPassword);
-    const url = 'https://api-bluejay.herokuapp.com/';
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        // Accept: 'application/json',
-      },
-      body: JSON.stringify({
-        query: `query {customer(search: {number: [\"${enteredNumber}\", \"${enteredPassword}\"]}) {first_name}}`,
-      }),
-    })
-      .then((response) => {
-        if (response.ok) return response.json();
-        setServerError(true);
-        throw new Error('Server Error');
-      })
-      .then((data) => {
-        if (!data.errors) {
-          console.log('data in success ', data);
-          setAccessDenied(false);
-          props.setIsLoggedIn(true);
-          setNumberInput('');
-          setPasswordInput('');
-          navigation.navigate('main-screen');
-          return;
-        }
-        setAccessDenied(true);
-        console.log('data in refuse', data);
-        return;
-      })
-      .catch((err) => {
-        // server error
-        setAccessDenied(false);
-        setServerError(true);
-        console.log('err ', err);
-        const message = `An Error has occurred: ${err.status}`;
-        // alert(`An Error has occurred: ${err.status}`);
-        throw new Error(message);
-      });
+    alert(data);
     return;
+
+    // setServerError(false);
+    // console.log('Attempting POST request to server...');
+    // console.log('enteredNumber: ', enteredNumber);
+    // console.log('enteredPassword: ', enteredPassword);
+    // const url = 'http://localhost:4000/graphql';
+    // // const url = 'https://api-bluejay.herokuapp.com/';
+    // const response = await fetch(url, {
+    //   method: 'POST',
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     // Accept: 'application/json',
+    //   },
+    //   body: JSON.stringify({
+    //     query: `query {customer(search: {number: [\"${enteredNumber}\", \"${enteredPassword}\"]}) {first_name}}`,
+    //   }),
+    // })
+    //   .then((response) => {
+    //     if (response.ok) return response.json();
+    //     setServerError(true);
+    //     throw new Error('Server Error');
+    //   })
+    //   .then((data) => {
+    //     if (!data.errors) {
+    //       console.log('data in success ', data);
+    //       setAccessDenied(false);
+    //       props.setIsLoggedIn(true);
+    //       setNumberInput('');
+    //       setPasswordInput('');
+    //       navigation.navigate('main-screen');
+    //       return;
+    //     }
+    //     setAccessDenied(true);
+    //     console.log('data in refuse', data);
+    //     return;
+    //   })
+    //   .catch((err) => {
+    //     // server error
+    //     setAccessDenied(false);
+    //     setServerError(true);
+    //     console.log('err ', err);
+    //     const message = `An Error has occurred: ${err.status}`;
+    //     // alert(`An Error has occurred: ${err.status}`);
+    //     throw new Error(message);
+    //   });
+    // return;
   };
 
   const handleNumberInputChange = (text) => {
