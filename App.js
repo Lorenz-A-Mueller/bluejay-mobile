@@ -17,6 +17,7 @@ import MainScreen from './screens/ MainScreen';
 import SignIn from './screens/SignInScreen';
 
 const link = createHttpLink({
+  // uri: 'https://api-bluejay.herokuapp.com/graphql',
   uri: 'http://localhost:4000/graphql',
   credentials: 'include',
 });

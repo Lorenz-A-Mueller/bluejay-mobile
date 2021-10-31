@@ -23,7 +23,7 @@ import transparent_logo from '../assets/full_logo_transparent.png';
 import loading_spinner from '../assets/spinner.gif';
 import Screen from '../components/Screen';
 
-const testQuery = gql`
+const logInValidationQuery = gql`
   query ($userNumber: String!, $userPassword: String!) {
     customer(search: { number: [$userNumber, $userPassword] }) {
       last_name
@@ -31,66 +31,52 @@ const testQuery = gql`
   }
 `;
 
-// const testQuery = gql`
-//   query {
-//     customer(search: { number: ["0000000001", "MyTestPassword1"] }) {
-//       last_name
-//     }
-//   }
-// `;
+const deleteExpiredSessionsQuery = gql`
+  query {
+    deleteAllExpiredCustomersSessions
+  }
+`;
 
 export default function SignIn(props) {
-  // const { loading, error, data } = useQuery(testQuery);
-  // console.log(data);
-
   const [isLoading, setIsLoading] = useState(false);
   const [accessDenied, setAccessDenied] = useState(false);
   const [numberInput, setNumberInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   const [serverError, setServerError] = useState(false);
-  const [wasClicked, setWasClicked] = useState(false);
+  const [wasPressed, setWasPressed] = useState(false);
   const navigation = useNavigation();
 
-  // graphQL hook
+  // graphQL hook -- gets called on every render -> state var "wasPressed" designed to only allow query after pressing
 
-  const { loading, error, data } = useQuery(testQuery, {
+  const { loading, error, data } = useQuery(logInValidationQuery, {
     variables: {
       userNumber: numberInput,
       userPassword: passwordInput,
     },
-    onCompleted: () => setWasClicked(false),
-    onError: () => setWasClicked(false),
-    skip: !wasClicked,
+    onCompleted: () => {
+      console.log('data', data);
+      setWasPressed(false);
+      setNumberInput('');
+      setPasswordInput('');
+      setAccessDenied(false);
+      props.setIsLoggedIn(true);
+      navigation.navigate('main-screen');
+    },
+    onError: () => {
+      console.log('error: ', error);
+      setNumberInput('');
+      setPasswordInput('');
+      setAccessDenied(true);
+      setWasPressed(false);
+    },
+    skip: !wasPressed,
   });
 
-  // const client = useApolloClient();
-  // const [login, { loading, error, data }] = useLazyQuery(testQuery, {
-  //   variables: { userNumber: numberInput, password: passwordInput },
-  // });
-  if (loading) {
-    console.log('is loading');
-  }
-  if (error) {
-    console.log(error);
-  }
-  if (data) {
-    console.log(data);
-  }
+  const deleteExpiredSessions = useLazyQuery(deleteExpiredSessionsQuery);
 
-  const handleSignInPress = () => {
-    setWasClicked(true);
-  };
-
-  // useEffect(() => {
-  //   if (setWasClicked) {
-  //     setWasClicked(false);
-  //   }
-  // }, [wasClicked]);
-
-  // const { loading, error, data } = useQuery(testQuery);
+  const handleSignInPress = () => {};
 
   // const handleSignInPress = async (enteredNumber, enteredPassword) => {
-  //   // alert(data);
   //   login({
   //     variables: { userNumber: numberInput, userPassword: passwordInput },
   //   });
@@ -111,11 +97,7 @@ export default function SignIn(props) {
   //   .then((data) => {
   //     if (!data.errors) {
   //       console.log('data in success ', data);
-  //       setAccessDenied(false);
-  //       props.setIsLoggedIn(true);
-  //       setNumberInput('');
-  //       setPasswordInput('');
-  //       navigation.navigate('main-screen');
+  //
   //       return;
   //     }
   //     setAccessDenied(true);
@@ -146,7 +128,7 @@ export default function SignIn(props) {
         <View style={style.logo_container}>
           <Image style={style.logo} source={transparent_logo} />
         </View>
-        {!isLoading ? (
+        {!loading ? (
           <View
             style={[
               style.sign_in_container,
@@ -175,7 +157,10 @@ export default function SignIn(props) {
             {serverError && (
               <Text style={style.error_text}>Error! Please try later! </Text>
             )}
-            <TouchableOpacity style={style.button} onPress={handleSignInPress}>
+            <TouchableOpacity
+              style={style.button}
+              onPress={() => setWasPressed(true)}
+            >
               <Text style={style.button_text}>SIGN IN</Text>
             </TouchableOpacity>
             <Text style={style.need_help}>Need help?</Text>
