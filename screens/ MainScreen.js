@@ -8,12 +8,22 @@ import {
   useQuery,
 } from '@apollo/client';
 import { useNavigation } from '@react-navigation/native';
+import Cookies from 'js-cookie';
 import React, { useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useEffect } from 'react/cjs/react.development';
 import transparent_logo from '../assets/full_logo_transparent.png';
 import ContactBox from '../components/ContactBox';
 import GreyBox from '../components/GreyBox';
 import Screen from '../components/Screen';
+
+function getCookies(key) {
+  try {
+    return JSON.parse(Cookies.get(key));
+  } catch (err) {
+    return undefined;
+  }
+}
 
 const validateSessionToken = gql`
   query ($token: String!) {
@@ -25,16 +35,21 @@ const validateSessionToken = gql`
 
 export default function MainScreen(props) {
   const [showContactBox, setShowContactBox] = useState(false);
+  const [currentSessionToken, setCurrentSessionToken] = useState(
+    getCookies('sessionToken'),
+  );
+  useEffect(() => {}, []);
+  console.log('currentSessionToken: ', currentSessionToken);
+  const { loading, error, data } = useQuery(validateSessionToken, {
+    variables: {
+      token: currentSessionToken,
+    },
+    onCompleted: (data) => console.log(data),
+    skip: !currentSessionToken,
+  });
   const handleContactPress = () => {
     setShowContactBox((previous) => !previous);
   };
-  const { loading, error, data } = useQuery(validateSessionToken, {
-    variables: {
-      token:
-        'Jw3f4T6mTGR8WmymhyyKYZg9WVfCepuAXaxpIhsJAMc5wGzoIG/Ks+I1a/ADVmCFAzXWZjrH6/zgSJMuLkI6eA==',
-    },
-  });
-
   return (
     // <Screen>
     <ScrollView>
