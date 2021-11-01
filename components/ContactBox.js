@@ -5,11 +5,9 @@ import mail_icon from '../assets/mail-icon.png';
 import telephone_icon from '../assets/telephone-icon.png';
 import MessageBox from './MessageBox';
 
-export default function ContactBox() {
+export default function ContactBox(props) {
   const [showMessageBox, setShowMessageBox] = useState(false);
-  const handleMessagePress = () => {
-    setShowMessageBox((previous) => !previous);
-  };
+
   return (
     <View style={[style.contact_box, showMessageBox && { height: 800 }]}>
       <Text style={style.header}>Contact</Text>
@@ -20,13 +18,15 @@ export default function ContactBox() {
         </TouchableOpacity>
         <TouchableOpacity
           style={[style.tile, showMessageBox && { backgroundColor: 'white' }]}
-          onPress={handleMessagePress}
+          onPress={() => setShowMessageBox((previous) => !previous)}
         >
           <Image source={mail_icon} style={style.image} />
           <Text style={style.text}>Message</Text>
         </TouchableOpacity>
       </View>
-      {showMessageBox && <MessageBox />}
+      {showMessageBox && (
+        <MessageBox handleSendFirstMessage={props.handleSendFirstMessage} />
+      )}
     </View>
   );
 }

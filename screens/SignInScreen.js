@@ -72,7 +72,7 @@ export default function SignIn(props) {
     skip: !wasPressed,
   });
 
-  const deleteExpiredSessions = useLazyQuery(deleteExpiredSessionsQuery);
+  const deleteExpiredSessions = useLazyQuery(deleteExpiredSessionsQuery); //??
 
   const handleSignInPress = () => {};
 
