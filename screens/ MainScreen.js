@@ -17,6 +17,15 @@ import ContactBox from '../components/ContactBox';
 import GreyBox from '../components/GreyBox';
 import Screen from '../components/Screen';
 
+const createRandomTicketNumber = () => {
+  let randomTicketNumber = '';
+  for (let i = 0; i < 7; i++) {
+    const randomInteger = Math.ceil(Math.random() * 10);
+    randomTicketNumber = randomTicketNumber + randomInteger;
+  }
+  return '#' + randomTicketNumber;
+};
+
 const validateSessionTokenQuery = gql`
   query {
     customerSession {
@@ -63,8 +72,10 @@ export default function MainScreen(props) {
     validateWhenMounting();
   }, []);
 
+  // once customerId is set by lazyQuery "validate", trigger createTicket; but only once chosenTitle has been set not directly after mounting.
+  // cannot send another message without refreshing (customerId stays the same)
   useEffect(() => {
-    createTicket();
+    if (chosenTitle) createTicket();
   }, [customerId]);
 
   const [validateWhenMounting, { loading, error, data }] = useLazyQuery(
@@ -79,10 +90,8 @@ export default function MainScreen(props) {
   const [validate, { loading: loading2, error: error2, data: data2 }] =
     useLazyQuery(validateSessionTokenWhenSendingQuery, {
       onCompleted: (data2) => {
-        console.log('data2', data2);
-        console.log(data2.customerSession.customer_id);
         setCustomerId(data2.customerSession.customer_id);
-        //   createTicket(); // -> handle asynchronosity
+        //   createTicket(); // -> cannot do here bc customerId not yet set --> useEffect()
       },
       fetchPolicy: 'network-only',
     });
@@ -96,13 +105,14 @@ export default function MainScreen(props) {
     },
   ] = useMutation(sendMessageMutation, {
     variables: {
-      number: '#22222222', // for testing
+      number: createRandomTicketNumber(),
       customer: customerId,
       category: chosenCategory,
       title: chosenTitle,
       messages: [1], // for testing
     },
     onComplete: (thisData) => console.log('thisData', thisData),
+    fetchPolicy: 'network-only',
   });
 
   const handleSendFirstMessage = (selectedCategory, title, messageText) => {
