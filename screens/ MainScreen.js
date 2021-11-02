@@ -33,7 +33,7 @@ const validateSessionTokenWhenSendingQuery = gql`
   }
 `;
 
-const sendMessageMutation = gql`
+const createTicketMutation = gql`
   mutation (
     $customer: ID
     $category: String
@@ -51,11 +51,29 @@ const sendMessageMutation = gql`
   }
 `;
 
+const createMessageMutation = gql`
+  mutation ($customerID: ID!, $content: String!) {
+    createNewMessage(customer_id: $customerID, content: $content) {
+      content
+    }
+  }
+`;
+
+// const createMessageMutation = gql`
+//   mutation {
+//     createNewMessage(customer_id: "1", content: "jojojo") {
+//       content
+//     }
+//   }
+// `;
+
 export default function MainScreen(props) {
   const [showContactBox, setShowContactBox] = useState(false);
   const [customerId, setCustomerId] = useState();
   const [chosenCategory, setChosenCategory] = useState('');
   const [chosenTitle, setChosenTitle] = useState('');
+  const [messageText, setMessageText] = useState('');
+  const [ticketWasSent, setTicketWasSent] = useState(false);
 
   useEffect(() => {
     validateWhenMounting();
@@ -66,6 +84,10 @@ export default function MainScreen(props) {
   useEffect(() => {
     if (chosenTitle) createTicket();
   }, [customerId]);
+
+  useEffect(() => {
+    if (messageText) createMessage();
+  }, [ticketWasSent]);
 
   const [validateWhenMounting, { loading, error, data }] = useLazyQuery(
     validateSessionTokenQuery,
@@ -92,14 +114,36 @@ export default function MainScreen(props) {
       error: sendMessageError,
       data: sendMessageData,
     },
-  ] = useMutation(sendMessageMutation, {
+  ] = useMutation(createTicketMutation, {
     variables: {
       customer: customerId,
       category: chosenCategory,
       title: chosenTitle,
       messages: [1], // for testing
     },
-    onComplete: (thisData) => console.log('thisData', thisData),
+    onCompleted: (data) => {
+      console.log('data in 1st mutation', data);
+      console.log('customerId', customerId);
+      console.log('messageText', messageText);
+      // createMessage();
+      setTicketWasSent(true);
+    },
+    fetchPolicy: 'network-only',
+  });
+
+  const [
+    createMessage,
+    {
+      loading: createMessageLoading,
+      error: createMessageError,
+      data: createMessageData,
+    },
+  ] = useMutation(createMessageMutation, {
+    variables: {
+      customerID: customerId,
+      content: messageText,
+    },
+    onCompleted: (data) => console.log('createMessageData', data),
     fetchPolicy: 'network-only',
   });
 
@@ -107,7 +151,7 @@ export default function MainScreen(props) {
     console.log(selectedCategory, title, messageText);
     setChosenCategory(selectedCategory);
     setChosenTitle(title);
-    // messageText
+    setMessageText(messageText);
     validate();
   };
 
