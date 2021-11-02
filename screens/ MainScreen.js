@@ -17,15 +17,6 @@ import ContactBox from '../components/ContactBox';
 import GreyBox from '../components/GreyBox';
 import Screen from '../components/Screen';
 
-const createRandomTicketNumber = () => {
-  let randomTicketNumber = '';
-  for (let i = 0; i < 7; i++) {
-    const randomInteger = Math.ceil(Math.random() * 10);
-    randomTicketNumber = randomTicketNumber + randomInteger;
-  }
-  return '#' + randomTicketNumber;
-};
-
 const validateSessionTokenQuery = gql`
   query {
     customerSession {
@@ -44,14 +35,12 @@ const validateSessionTokenWhenSendingQuery = gql`
 
 const sendMessageMutation = gql`
   mutation (
-    $number: String
     $customer: ID
     $category: String
     $title: String
     $messages: [Int]
   ) {
     createNewTicket(
-      ticket_number: $number
       customer_id: $customer
       category: $category
       title: $title
@@ -105,7 +94,6 @@ export default function MainScreen(props) {
     },
   ] = useMutation(sendMessageMutation, {
     variables: {
-      number: createRandomTicketNumber(),
       customer: customerId,
       category: chosenCategory,
       title: chosenTitle,
