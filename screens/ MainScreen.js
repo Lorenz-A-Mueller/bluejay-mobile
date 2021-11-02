@@ -54,18 +54,10 @@ const createTicketMutation = gql`
 const createMessageMutation = gql`
   mutation ($customerID: ID!, $content: String!) {
     createNewMessage(customer_id: $customerID, content: $content) {
-      content
+      id
     }
   }
 `;
-
-// const createMessageMutation = gql`
-//   mutation {
-//     createNewMessage(customer_id: "1", content: "jojojo") {
-//       content
-//     }
-//   }
-// `;
 
 export default function MainScreen(props) {
   const [showContactBox, setShowContactBox] = useState(false);
@@ -74,6 +66,7 @@ export default function MainScreen(props) {
   const [chosenTitle, setChosenTitle] = useState('');
   const [messageText, setMessageText] = useState('');
   const [ticketWasSent, setTicketWasSent] = useState(false);
+  const [newMessageId, setNewMessageId] = useState('');
 
   useEffect(() => {
     validateWhenMounting();
@@ -81,13 +74,17 @@ export default function MainScreen(props) {
 
   // once customerId is set by lazyQuery "validate", trigger createTicket; but only once chosenTitle has been set not directly after mounting.
   // cannot send another message without refreshing (customerId stays the same)
+
   useEffect(() => {
-    if (chosenTitle) createTicket();
+    if (chosenTitle) createMessage();
   }, [customerId]);
 
   useEffect(() => {
-    if (messageText) createMessage();
-  }, [ticketWasSent]);
+    if (newMessageId) {
+      createTicket();
+      console.log('newMessageId in use effect: ', newMessageId);
+    }
+  }, [newMessageId]);
 
   const [validateWhenMounting, { loading, error, data }] = useLazyQuery(
     validateSessionTokenQuery,
@@ -102,7 +99,6 @@ export default function MainScreen(props) {
     useLazyQuery(validateSessionTokenWhenSendingQuery, {
       onCompleted: (data2) => {
         setCustomerId(data2.customerSession.customer_id);
-        //   createTicket(); // -> cannot do here bc customerId not yet set --> useEffect()
       },
       fetchPolicy: 'network-only',
     });
@@ -119,14 +115,10 @@ export default function MainScreen(props) {
       customer: customerId,
       category: chosenCategory,
       title: chosenTitle,
-      messages: [1], // for testing
+      messages: [Number.parseInt(newMessageId, 10)],
     },
     onCompleted: (data) => {
-      console.log('data in 1st mutation', data);
-      console.log('customerId', customerId);
-      console.log('messageText', messageText);
-      // createMessage();
-      setTicketWasSent(true);
+      console.log(data);
     },
     fetchPolicy: 'network-only',
   });
@@ -143,7 +135,10 @@ export default function MainScreen(props) {
       customerID: customerId,
       content: messageText,
     },
-    onCompleted: (data) => console.log('createMessageData', data),
+    onCompleted: (data) => {
+      console.log('createMessageData', data);
+      setNewMessageId(data.createNewMessage.id);
+    },
     fetchPolicy: 'network-only',
   });
 
