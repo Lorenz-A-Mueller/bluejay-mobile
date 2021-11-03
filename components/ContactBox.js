@@ -74,7 +74,6 @@ const style = StyleSheet.create({
     height: 108,
     marginTop: 32,
     flexDirection: 'row',
-    // justifyContent: 'space-between',
     marginTop: 26,
   },
   tile: {
@@ -92,6 +91,5 @@ const style = StyleSheet.create({
   text: {
     fontWeight: 'bold',
     fontSize: 16,
-    // marginTop: 12,
   },
 });

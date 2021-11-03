@@ -1,16 +1,6 @@
-import {
-  ApolloClient,
-  ApolloProvider,
-  gql,
-  InMemoryCache,
-  useApolloClient,
-  useLazyQuery,
-  useQuery,
-} from '@apollo/client';
-// import { useLazyQuery } from '@apollo/react-hooks';
-// useLazyQuery, in contrast to useQuery, does not automatically run when component is mounted
-import { NavigationContainer, useNavigation } from '@react-navigation/native';
-import React, { useEffect, useState } from 'react';
+import { gql, useQuery } from '@apollo/client';
+import { useNavigation } from '@react-navigation/native';
+import React, { useState } from 'react';
 import {
   Image,
   StyleSheet,
@@ -21,18 +11,9 @@ import {
 } from 'react-native';
 import transparent_logo from '../assets/full_logo_transparent.png';
 import loading_spinner from '../assets/spinner.gif';
-import Screen from '../components/Screen';
-
-const logInValidationQuery = gql`
-  query ($userNumber: String!, $userPassword: String!) {
-    customer(search: { number: [$userNumber, $userPassword] }) {
-      last_name
-    }
-  }
-`;
+import { logInValidationQuery } from '../utils/queries';
 
 export default function SignIn(props) {
-  const [isLoading, setIsLoading] = useState(false);
   const [accessDenied, setAccessDenied] = useState(false);
   const [numberInput, setNumberInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
@@ -53,7 +34,6 @@ export default function SignIn(props) {
       setNumberInput('');
       setPasswordInput('');
       setAccessDenied(false);
-      props.setIsLoggedIn(true);
       navigation.navigate('main-screen');
     },
     onError: () => {
@@ -66,105 +46,55 @@ export default function SignIn(props) {
     skip: !wasPressed,
   });
 
-  const handleSignInPress = () => {};
-
-  // const handleSignInPress = async (enteredNumber, enteredPassword) => {
-  //   login({
-  //     variables: { userNumber: numberInput, userPassword: passwordInput },
-  //   });
-
-  //   console.log(data);
-  //   return;
-
-  //   setServerError(false);
-  // console.log('Attempting POST request to server...');
-  // console.log('enteredNumber: ', enteredNumber);
-  // console.log('enteredPassword: ', enteredPassword);
-
-  //   .then((response) => {
-  //     if (response.ok) return response.json();
-  //     setServerError(true);
-  //     throw new Error('Server Error');
-  //   })
-  //   .then((data) => {
-  //     if (!data.errors) {
-  //       console.log('data in success ', data);
-  //
-  //       return;
-  //     }
-  //     setAccessDenied(true);
-  //     console.log('data in refuse', data);
-  //     return;
-  //   })
-  //   .catch((err) => {
-  //     // server error
-  //     setAccessDenied(false);
-  //     setServerError(true);
-  //     console.log('err ', err);
-  //     const message = `An Error has occurred: ${err.status}`;
-  //     // alert(`An Error has occurred: ${err.status}`);
-  //     throw new Error(message);
-  //   });
-  // return;
-  // };
-
-  const handleNumberInputChange = (text) => {
-    setNumberInput(text);
-  };
-  const handlePasswordChange = (text) => {
-    setPasswordInput(text);
-  };
   return (
-    <Screen>
-      <View style={style.container}>
-        <View style={style.logo_container}>
-          <Image style={style.logo} source={transparent_logo} />
-        </View>
-        {!loading ? (
-          <View
-            style={[
-              style.sign_in_container,
-              accessDenied &&
-                {
-                  /* animation shake?  */
-                },
-            ]}
-          >
-            <Text style={style.header}>Sign In</Text>
-            <TextInput
-              style={style.numberInput}
-              placeholder="BlueJay Premium Number"
-              onChangeText={(text) => handleNumberInputChange(text)}
-              value={numberInput}
-            />
-            <TextInput
-              style={style.passwordInput}
-              placeholder="Password"
-              onChangeText={(text) => handlePasswordChange(text)}
-              value={passwordInput}
-            />
-            {accessDenied && (
-              <Text style={style.error_text}>Invalid number/password </Text>
-            )}
-            {serverError && (
-              <Text style={style.error_text}>Error! Please try later! </Text>
-            )}
-            <TouchableOpacity
-              style={style.button}
-              onPress={() => setWasPressed(true)}
-            >
-              <Text style={style.button_text}>SIGN IN</Text>
-            </TouchableOpacity>
-            <Text style={style.need_help}>Need help?</Text>
-          </View>
-        ) : (
-          <View style={style.loading_container}>
-            <Image source={loading_spinner} style={style.loading_spinner} />
-            <Text style={style.loading_text}>loading...</Text>
-          </View>
-        )}
+    <View style={style.container}>
+      <View style={style.logo_container}>
+        <Image style={style.logo} source={transparent_logo} />
       </View>
-    </Screen>
+      {!loading ? (
+        <View
+          style={[
+            style.sign_in_container,
+            accessDenied &&
+              {
+                /* animation shake?  */
+              },
+          ]}
+        >
+          <Text style={style.header}>Sign In</Text>
+          <TextInput
+            style={style.numberInput}
+            placeholder="BlueJay Premium Number"
+            onChangeText={(text) => setNumberInput(text)}
+            value={numberInput}
+          />
+          <TextInput
+            style={style.passwordInput}
+            placeholder="Password"
+            onChangeText={(text) => setPasswordInput(text)}
+            value={passwordInput}
+          />
+          {accessDenied && (
+            <Text style={style.error_text}>Invalid number/password </Text>
+          )}
+          {serverError && (
+            <Text style={style.error_text}>Error! Please try later! </Text>
+          )}
+          <TouchableOpacity
+            style={style.button}
+            onPress={() => setWasPressed(true)}
+          >
+            <Text style={style.button_text}>SIGN IN</Text>
+          </TouchableOpacity>
+          <Text style={style.need_help}>Need help?</Text>
+        </View>
+      ) : (
+        <View style={style.loading_container}>
+          <Image source={loading_spinner} style={style.loading_spinner} />
+          <Text style={style.loading_text}>loading...</Text>
+        </View>
+      )}
+    </View>
   );
 }
 

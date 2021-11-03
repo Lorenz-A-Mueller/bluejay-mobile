@@ -1,63 +1,18 @@
-import {
-  ApolloClient,
-  ApolloProvider,
-  gql,
-  InMemoryCache,
-  useApolloClient,
-  useLazyQuery,
-  useMutation,
-  useQuery,
-} from '@apollo/client';
+import { useLazyQuery, useMutation } from '@apollo/client';
 import { useNavigation } from '@react-navigation/native';
-import React, { useState } from 'react';
+import { visitWithTypeInfo } from 'graphql';
+import React, { useEffect, useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useEffect } from 'react/cjs/react.development';
 import transparent_logo from '../assets/full_logo_transparent.png';
+import loading_spinner from '../assets/spinner.gif';
 import ContactBox from '../components/ContactBox';
 import GreyBox from '../components/GreyBox';
-import Screen from '../components/Screen';
-
-const validateSessionTokenQuery = gql`
-  query {
-    customerSession {
-      id
-    }
-  }
-`;
-
-const validateSessionTokenWhenSendingQuery = gql`
-  query {
-    customerSession {
-      customer_id
-    }
-  }
-`;
-
-const createTicketMutation = gql`
-  mutation (
-    $customer: ID
-    $category: String
-    $title: String
-    $messages: [Int]
-  ) {
-    createNewTicket(
-      customer_id: $customer
-      category: $category
-      title: $title
-      messages: $messages
-    ) {
-      ticket_number
-    }
-  }
-`;
-
-const createMessageMutation = gql`
-  mutation ($customerID: ID!, $content: String!) {
-    createNewMessage(customer_id: $customerID, content: $content) {
-      id
-    }
-  }
-`;
+import {
+  createMessageMutation,
+  createTicketMutation,
+  validateSessionTokenQuery,
+  validateSessionTokenWhenSendingQuery,
+} from '../utils/queries';
 
 export default function MainScreen(props) {
   const [showContactBox, setShowContactBox] = useState(false);
@@ -65,19 +20,54 @@ export default function MainScreen(props) {
   const [chosenCategory, setChosenCategory] = useState('');
   const [chosenTitle, setChosenTitle] = useState('');
   const [messageText, setMessageText] = useState('');
-  const [ticketWasSent, setTicketWasSent] = useState(false);
   const [newMessageId, setNewMessageId] = useState('');
+  const [isLoadingAfterSending, setIsLoadingAfterSending] = useState(false);
+  const [isCompletedAfterSending, setIsCompletedAfterSending] = useState(false);
+  const navigation = useNavigation();
 
   useEffect(() => {
     validateWhenMounting();
   }, []);
 
-  // once customerId is set by lazyQuery "validate", trigger createTicket; but only once chosenTitle has been set not directly after mounting.
+  const [validateWhenMounting] = useLazyQuery(validateSessionTokenQuery, {
+    onCompleted: (data) => console.log('data', data),
+    onError: () => {
+      navigation.navigate('main-screen');
+    },
+    fetchPolicy: 'network-only',
+  });
+
+  const handleSendFirstMessage = (selectedCategory, title, messageText) => {
+    setChosenCategory(selectedCategory);
+    setChosenTitle(title);
+    setMessageText(messageText);
+    validate();
+  };
+
+  const [validate] = useLazyQuery(validateSessionTokenWhenSendingQuery, {
+    onCompleted: (data) => {
+      setCustomerId(data.customerSession.customer_id);
+    },
+    fetchPolicy: 'network-only',
+  });
+
+  // once customerId is set by lazyQuery "validate", trigger createMessage; but only once chosenTitle has been set (not directly after mounting).
   // cannot send another message without refreshing (customerId stays the same)
 
   useEffect(() => {
     if (chosenTitle) createMessage();
   }, [customerId]);
+
+  const [createMessage] = useMutation(createMessageMutation, {
+    variables: {
+      customerID: customerId,
+      content: messageText,
+    },
+    onCompleted: (data) => {
+      setNewMessageId(data.createNewMessage.id);
+    },
+    fetchPolicy: 'network-only',
+  });
 
   useEffect(() => {
     if (newMessageId) {
@@ -86,31 +76,7 @@ export default function MainScreen(props) {
     }
   }, [newMessageId]);
 
-  const [validateWhenMounting, { loading, error, data }] = useLazyQuery(
-    validateSessionTokenQuery,
-    {
-      onCompleted: (data) => console.log('data', data),
-      // must be set so the query doesn't use the cache (could not be called several times)
-      fetchPolicy: 'network-only',
-    },
-  );
-
-  const [validate, { loading: loading2, error: error2, data: data2 }] =
-    useLazyQuery(validateSessionTokenWhenSendingQuery, {
-      onCompleted: (data2) => {
-        setCustomerId(data2.customerSession.customer_id);
-      },
-      fetchPolicy: 'network-only',
-    });
-
-  const [
-    createTicket,
-    {
-      loading: sendMessageLoading,
-      error: sendMessageError,
-      data: sendMessageData,
-    },
-  ] = useMutation(createTicketMutation, {
+  const [createTicket] = useMutation(createTicketMutation, {
     variables: {
       customer: customerId,
       category: chosenCategory,
@@ -119,56 +85,53 @@ export default function MainScreen(props) {
     },
     onCompleted: (data) => {
       console.log(data);
+      setIsLoadingAfterSending(true);
+      setTimeout(() => {
+        setShowContactBox(false);
+        setIsLoadingAfterSending(false);
+        setIsCompletedAfterSending(true);
+        setTimeout(() => {
+          setIsCompletedAfterSending(false);
+        }, 2000);
+      }, 1000);
     },
     fetchPolicy: 'network-only',
   });
-
-  const [
-    createMessage,
-    {
-      loading: createMessageLoading,
-      error: createMessageError,
-      data: createMessageData,
-    },
-  ] = useMutation(createMessageMutation, {
-    variables: {
-      customerID: customerId,
-      content: messageText,
-    },
-    onCompleted: (data) => {
-      console.log('createMessageData', data);
-      setNewMessageId(data.createNewMessage.id);
-    },
-    fetchPolicy: 'network-only',
-  });
-
-  const handleSendFirstMessage = (selectedCategory, title, messageText) => {
-    console.log(selectedCategory, title, messageText);
-    setChosenCategory(selectedCategory);
-    setChosenTitle(title);
-    setMessageText(messageText);
-    validate();
-  };
 
   const handleContactPress = () => {
     setShowContactBox((previous) => !previous);
   };
 
+  if (isLoadingAfterSending || isCompletedAfterSending) {
+    return (
+      <ScrollView>
+        <Image source={transparent_logo} style={style.logo} />
+        <Text style={style.header}>Welcome, placeholder!</Text>
+        {isLoadingAfterSending ? (
+          <View style={style.loading_container}>
+            <Image source={loading_spinner} style={style.loading_spinner} />
+            <Text style={style.loading_text}>loading...</Text>
+          </View>
+        ) : (
+          <View style={style.success_message_container}>
+            <Text style={style.success_message_text}>Message sent!</Text>
+          </View>
+        )}
+      </ScrollView>
+    );
+  }
   return (
-    // <Screen>
     <ScrollView>
       <Image source={transparent_logo} style={style.logo} />
       <Text style={style.header}>Welcome, placeholder!</Text>
       <GreyBox
         showContactBox={showContactBox}
-        setIsLoggedIn={props.setIsLoggedIn}
         handleContactPress={handleContactPress}
       />
       {showContactBox && (
         <ContactBox handleSendFirstMessage={handleSendFirstMessage} />
       )}
     </ScrollView>
-    // </Screen>
   );
 }
 
@@ -187,5 +150,39 @@ const style = StyleSheet.create({
     alignSelf: 'center',
     textAlign: 'center',
     marginTop: 48,
+  },
+  loading_container: {
+    width: 284,
+    height: 512,
+    marginTop: 56,
+    backgroundColor: '#E5E5E5',
+    borderRadius: 12,
+    alignSelf: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loading_spinner: {
+    width: 200,
+    height: 200,
+  },
+  loading_text: {
+    marginTop: 92,
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  success_message_container: {
+    backgroundColor: '#E5E5E5',
+    height: 400,
+    width: 332,
+    alignSelf: 'center',
+    borderRadius: 12,
+    marginTop: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  success_message_text: {
+    fontWeight: 'bold',
+    fontSize: 20,
+    marginTop: 12,
   },
 });
