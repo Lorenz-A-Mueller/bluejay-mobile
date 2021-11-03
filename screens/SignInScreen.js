@@ -31,12 +31,6 @@ const logInValidationQuery = gql`
   }
 `;
 
-const deleteExpiredSessionsQuery = gql`
-  query {
-    deleteAllExpiredCustomersSessions
-  }
-`;
-
 export default function SignIn(props) {
   const [isLoading, setIsLoading] = useState(false);
   const [accessDenied, setAccessDenied] = useState(false);
@@ -71,8 +65,6 @@ export default function SignIn(props) {
     },
     skip: !wasPressed,
   });
-
-  const deleteExpiredSessions = useLazyQuery(deleteExpiredSessionsQuery); //??
 
   const handleSignInPress = () => {};
 
