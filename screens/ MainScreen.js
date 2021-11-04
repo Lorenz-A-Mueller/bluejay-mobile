@@ -16,6 +16,7 @@ import {
 
 export default function MainScreen(props) {
   const [showContactBox, setShowContactBox] = useState(false);
+  const [ticketId, setTicketId] = useState();
   const [customerId, setCustomerId] = useState();
   const [chosenCategory, setChosenCategory] = useState('');
   const [chosenTitle, setChosenTitle] = useState('');
@@ -55,36 +56,18 @@ export default function MainScreen(props) {
   // cannot send another message without refreshing (customerId stays the same)
 
   useEffect(() => {
-    if (chosenTitle) createMessage();
+    if (customerId) createTicket();
   }, [customerId]);
-
-  const [createMessage] = useMutation(createMessageMutation, {
-    variables: {
-      customerID: customerId,
-      content: messageText,
-    },
-    onCompleted: (data) => {
-      setNewMessageId(data.createNewMessage.id);
-    },
-    fetchPolicy: 'network-only',
-  });
-
-  useEffect(() => {
-    if (newMessageId) {
-      createTicket();
-      console.log('newMessageId in use effect: ', newMessageId);
-    }
-  }, [newMessageId]);
 
   const [createTicket] = useMutation(createTicketMutation, {
     variables: {
       customer: customerId,
       category: chosenCategory,
       title: chosenTitle,
-      messages: [Number.parseInt(newMessageId, 10)],
     },
     onCompleted: (data) => {
-      console.log(data);
+      console.log('data in createTicket', data);
+      setTicketId(data.createNewTicket.id);
       setIsLoadingAfterSending(true);
       setTimeout(() => {
         setShowContactBox(false);
@@ -94,6 +77,25 @@ export default function MainScreen(props) {
           setIsCompletedAfterSending(false);
         }, 2000);
       }, 1000);
+    },
+    fetchPolicy: 'network-only',
+  });
+
+  useEffect(() => {
+    if (ticketId) {
+      createMessage();
+      // console.log('newMessageId in use effect: ', newMessageId);
+    }
+  }, [ticketId]);
+
+  const [createMessage] = useMutation(createMessageMutation, {
+    variables: {
+      ticketID: ticketId,
+      content: messageText,
+    },
+    onCompleted: (data) => {
+      setNewMessageId(data.createNewMessage.id);
+      console.log('data in createMessage: ', data);
     },
     fetchPolicy: 'network-only',
   });

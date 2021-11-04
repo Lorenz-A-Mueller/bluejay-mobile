@@ -25,26 +25,20 @@ export const validateSessionTokenWhenSendingQuery = gql`
 `;
 
 export const createTicketMutation = gql`
-  mutation (
-    $customer: ID
-    $category: String
-    $title: String
-    $messages: [Int]
-  ) {
+  mutation ($customer: ID, $category: String, $title: String) {
     createNewTicket(
       customer_id: $customer
       category: $category
       title: $title
-      messages: $messages
     ) {
-      ticket_number
+      id
     }
   }
 `;
 
 export const createMessageMutation = gql`
-  mutation ($customerID: ID!, $content: String!) {
-    createNewMessage(customer_id: $customerID, content: $content) {
+  mutation ($ticketID: ID!, $content: String!) {
+    createNewMessage(ticket_id: $ticketID, content: $content) {
       id
     }
   }

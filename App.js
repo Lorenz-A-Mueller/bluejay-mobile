@@ -35,7 +35,7 @@ export default function App() {
         <StatusBar style="light" />
         <NavigationContainer>
           <Stack.Navigator
-            initialRouteName="sign-in"
+            initialRouteName="main-screen"
             screenOptions={{
               headerShown: false,
             }}
