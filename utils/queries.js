@@ -47,7 +47,7 @@ export const createMessageMutation = gql`
 
 export const getTicketByCustomerIdQuery = gql`
   query ($customerID: ID!) {
-    ticket(customer_id: $customerID) {
+    ticket(search: { customer_id: $customerID }) {
       id
       title
       created
@@ -64,6 +64,14 @@ export const getMessagesQuery = gql`
       content
       id
       responder_id
+    }
+  }
+`;
+
+export const getEmployeeFirstNameQuery = gql`
+  query ($employeeID: ID!) {
+    employee(search: { id: $employeeID }) {
+      first_name
     }
   }
 `;

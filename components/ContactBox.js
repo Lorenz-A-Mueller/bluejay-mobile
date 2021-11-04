@@ -54,9 +54,9 @@ export default function ContactBox(props) {
     });
 
   return (
-    <View style={[style.contact_box, showMessageBox && { height: 800 }]}>
+    <View style={[style.contact_box, !showMessageBox && { height: 236 }]}>
       <Text style={style.header}>Contact</Text>
-      <View style={[style.tile_box, , ticketData && { height: 300 }]}>
+      <View style={style.tile_box}>
         <TouchableOpacity style={style.tile}>
           <Image source={telephone_icon} style={style.image} />
           <Text style={style.text}>Call Us!</Text>
@@ -85,23 +85,10 @@ export default function ContactBox(props) {
   );
 }
 
-const contact_box_large_style = StyleSheet.create({
-  height: 800,
-});
-
 const style = StyleSheet.create({
   contact_box: {
     backgroundColor: '#E5E5E5',
-    height: 236,
-    width: 332,
-    alignSelf: 'center',
-    borderRadius: 12,
-    marginTop: 32,
-    alignItems: 'center',
-  },
-  contact_box_large: {
-    backgroundColor: '#E5E5E5',
-    height: 800,
+    height: 'fit-content',
     width: 332,
     alignSelf: 'center',
     borderRadius: 12,

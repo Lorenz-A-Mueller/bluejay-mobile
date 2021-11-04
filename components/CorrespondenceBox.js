@@ -1,6 +1,6 @@
-import { useQuery } from '@apollo/client';
+import { useLazyQuery, useMutation } from '@apollo/client';
 import { useNavigation } from '@react-navigation/native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Image,
   StyleSheet,
@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { getMessagesQuery } from '../utils/queries';
+import { createMessageMutation, getMessagesQuery } from '../utils/queries';
 import PastMessage from './PastMessage';
 
 export default function CorrespondenceBox(props) {
@@ -18,22 +18,41 @@ export default function CorrespondenceBox(props) {
 
   console.log('messages', messages);
 
-  const {
-    loading,
-    error,
-    data: getMessagesQueryData,
-  } = useQuery(getMessagesQuery, {
-    variables: { ticketID: props.ticketData.id },
-    onCompleted: () => {
-      console.log(getMessagesQueryData);
-      setMessages(getMessagesQueryData.messages);
+  useEffect(() => {
+    getMessages();
+  }, []);
+
+  const [getMessages, { data: getMessagesQueryData }] = useLazyQuery(
+    getMessagesQuery,
+    {
+      variables: { ticketID: props.ticketData.id },
+      onCompleted: () => {
+        console.log(getMessagesQueryData);
+        setMessages(getMessagesQueryData.messages);
+      },
+      fetchPolicy: 'network-only',
     },
-    fetchPolicy: 'network-only',
-  });
+  );
+
+  const handleSendFurtherMessage = () => {
+    createNewMessage();
+  };
+
+  const [createNewMessage, { data: createMessageMutationData }] = useMutation(
+    createMessageMutation,
+    {
+      variables: { ticketID: props.ticketData.id, content: messageText },
+      onCompleted: () => {
+        console.log(createMessageMutationData);
+        getMessages();
+      },
+      fetchPolicy: 'network-only',
+    },
+  );
 
   return (
-    <View style={style.correspondence_container}>
-      <Text style={style.title_box}>Some Placeholder Issue</Text>
+    <View style={[style.correspondence_container, { height: 'fit-content' }]}>
+      <Text style={style.title_box}>{props.ticketData.title}</Text>
       {messages.length &&
         messages.map((message) => (
           <PastMessage
@@ -42,26 +61,24 @@ export default function CorrespondenceBox(props) {
             ticketData={props.ticketData}
           />
         ))}
-      <View style={style.message_box}>
-        <TextInput
-          style={style.message_input}
-          placeholder="Your Message"
-          multiline={true}
-          // numberOfLines={10}
-          maxLength="1000"
-          onChangeText={(text) => setMessageText(text)}
-          value={messageText}
-        />
-        <TouchableOpacity
-          style={style.send_button}
-          onPress={() =>
-            props.handleSendFurtherMessage(selectedCategory, title, messageText)
-          }
-        >
-          <Text style={style.send_button_text}>Send</Text>
-        </TouchableOpacity>
-      </View>
+      {/* <View style={style.message_box}> */}
+      <TextInput
+        style={style.message_input}
+        placeholder="Your Message"
+        multiline={true}
+        // numberOfLines={10}
+        maxLength="1000"
+        onChangeText={(text) => setMessageText(text)}
+        value={messageText}
+      />
+      <TouchableOpacity
+        style={style.send_button}
+        onPress={() => handleSendFurtherMessage()}
+      >
+        <Text style={style.send_button_text}>Send</Text>
+      </TouchableOpacity>
     </View>
+    // </View>
   );
 }
 
