@@ -1,6 +1,6 @@
-import { gql, useQuery } from '@apollo/client';
+import { gql, useLazyQuery, useQuery } from '@apollo/client';
 import { useNavigation } from '@react-navigation/native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Image,
   StyleSheet,
@@ -11,7 +11,10 @@ import {
 } from 'react-native';
 import transparent_logo from '../assets/full_logo_transparent.png';
 import loading_spinner from '../assets/spinner.gif';
-import { logInValidationQuery } from '../utils/queries';
+import {
+  logInValidationQuery,
+  validateSessionTokenQuery,
+} from '../utils/queries';
 
 export default function SignIn(props) {
   const [accessDenied, setAccessDenied] = useState(false);
@@ -20,6 +23,20 @@ export default function SignIn(props) {
   const [serverError, setServerError] = useState(false);
   const [wasPressed, setWasPressed] = useState(false);
   const navigation = useNavigation();
+
+  useEffect(() => {
+    validateWhenMounting();
+  }, []);
+
+  const [validateWhenMounting] = useLazyQuery(validateSessionTokenQuery, {
+    onCompleted: () => {
+      navigation.navigate('main-screen');
+    },
+    onError: () => {
+      // navigation.navigate('sign-in');
+    },
+    fetchPolicy: 'network-only',
+  });
 
   // graphQL hook -- gets called on every render -> state var "wasPressed" designed to only allow query after pressing
 

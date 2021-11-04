@@ -33,7 +33,7 @@ export default function MainScreen(props) {
   const [validateWhenMounting] = useLazyQuery(validateSessionTokenQuery, {
     onCompleted: (data) => console.log('data', data),
     onError: () => {
-      navigation.navigate('main-screen');
+      navigation.navigate('sign-in');
     },
     fetchPolicy: 'network-only',
   });

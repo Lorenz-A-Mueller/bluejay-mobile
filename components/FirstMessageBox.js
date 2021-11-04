@@ -1,12 +1,3 @@
-import {
-  ApolloClient,
-  ApolloProvider,
-  gql,
-  InMemoryCache,
-  useApolloClient,
-  useLazyQuery,
-  useQuery,
-} from '@apollo/client';
 import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
 import {
@@ -19,7 +10,7 @@ import {
 } from 'react-native';
 import CategorySelect from './CategorySelect';
 
-export default function MessageBox(props) {
+export default function FirstMessageBox(props) {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [title, setTitle] = useState('');
   const [messageText, setMessageText] = useState('');

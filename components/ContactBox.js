@@ -1,45 +1,89 @@
+import { useLazyQuery } from '@apollo/client';
 import { useNavigation } from '@react-navigation/native';
-import React, { useState } from 'react';
+import { isConstValueNode } from 'graphql';
+import React, { useEffect, useState } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import mail_icon from '../assets/mail-icon.png';
 import telephone_icon from '../assets/telephone-icon.png';
-import MessageBox from './MessageBox';
+import {
+  getTicketByCustomerIdQuery,
+  validateSessionTokenQuery,
+} from '../utils/queries';
+import CorrespondenceBox from './CorrespondenceBox';
+import FirstMessageBox from './FirstMessageBox';
 
 export default function ContactBox(props) {
   const [showMessageBox, setShowMessageBox] = useState(false);
+  const [customerId, setCustomerId] = useState('');
+  const [ticketData, setTicketData] = useState({});
+  console.log('ticketData', ticketData);
+
+  useEffect(() => {
+    validateWhenMounting();
+  }, []);
+
+  const [validateWhenMounting] = useLazyQuery(validateSessionTokenQuery, {
+    onCompleted: (data) => {
+      console.log('data in ContactBox', data);
+      setCustomerId(data.customerSession.customer_id);
+      setTicketData(data.ticket);
+    },
+    onError: () => {
+      navigation.navigate('sign-in');
+    },
+    fetchPolicy: 'network-only',
+  });
+
+  const handleOnPress = () => {
+    setShowMessageBox((previous) => !previous);
+    getTicketByCustomerId();
+    console.log('customerId', customerId);
+  };
+
+  const [getTicketByCustomerId, { data: getTicketByCustomerIdData }] =
+    useLazyQuery(getTicketByCustomerIdQuery, {
+      variables: {
+        customerID: customerId,
+      },
+      onCompleted: () => {
+        console.log('TICKET - data in ContactBox', getTicketByCustomerIdData);
+        setTicketData(getTicketByCustomerIdData.ticket);
+      },
+      onError: () => {},
+      fetchPolicy: 'network-only',
+    });
 
   return (
     <View style={[style.contact_box, showMessageBox && { height: 800 }]}>
       <Text style={style.header}>Contact</Text>
-      <View style={style.tile_box}>
+      <View style={[style.tile_box, , ticketData && { height: 300 }]}>
         <TouchableOpacity style={style.tile}>
           <Image source={telephone_icon} style={style.image} />
           <Text style={style.text}>Call Us!</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[style.tile, showMessageBox && { backgroundColor: 'white' }]}
-          onPress={() => setShowMessageBox((previous) => !previous)}
+          onPress={() => handleOnPress()}
         >
           <Image source={mail_icon} style={style.image} />
           <Text style={style.text}>Message</Text>
         </TouchableOpacity>
       </View>
-      {showMessageBox && (
-        <MessageBox handleSendFirstMessage={props.handleSendFirstMessage} />
+      {showMessageBox && !ticketData ? (
+        <FirstMessageBox
+          handleSendFirstMessage={props.handleSendFirstMessage}
+        />
+      ) : showMessageBox && ticketData ? (
+        <CorrespondenceBox
+          ticketData={ticketData}
+          handleSendFirstMessage={props.handleSendFirstMessage}
+        />
+      ) : (
+        <View />
       )}
     </View>
   );
 }
-
-// const contact_box_style = StyleSheet.create({
-//   backgroundColor: '#E5E5E5',
-//   height: 236,
-//   width: 332,
-//   alignSelf: 'center',
-//   borderRadius: 12,
-//   marginTop: 32,
-//   alignItems: 'center',
-// });
 
 const contact_box_large_style = StyleSheet.create({
   height: 800,

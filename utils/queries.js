@@ -12,6 +12,7 @@ export const validateSessionTokenQuery = gql`
   query {
     customerSession {
       id
+      customer_id
     }
   }
 `;
@@ -40,6 +41,29 @@ export const createMessageMutation = gql`
   mutation ($ticketID: ID!, $content: String!) {
     createNewMessage(ticket_id: $ticketID, content: $content) {
       id
+    }
+  }
+`;
+
+export const getTicketByCustomerIdQuery = gql`
+  query ($customerID: ID!) {
+    ticket(customer_id: $customerID) {
+      id
+      title
+      created
+      category
+      status
+    }
+  }
+`;
+
+export const getMessagesQuery = gql`
+  query ($ticketID: ID) {
+    messages(ticket_id: $ticketID) {
+      created
+      content
+      id
+      responder_id
     }
   }
 `;
