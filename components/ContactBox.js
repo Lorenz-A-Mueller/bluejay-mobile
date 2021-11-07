@@ -16,6 +16,7 @@ export default function ContactBox(props) {
   const [showMessageBox, setShowMessageBox] = useState(false);
   const [customerId, setCustomerId] = useState('');
   const [ticketData, setTicketData] = useState({});
+  const navigation = useNavigation();
   console.log('ticketData', ticketData);
 
   useEffect(() => {
@@ -24,6 +25,10 @@ export default function ContactBox(props) {
 
   const [validateWhenMounting] = useLazyQuery(validateSessionTokenQuery, {
     onCompleted: (data) => {
+      if (!data.customerSession) {
+        navigation.navigate('sign-in');
+        return;
+      }
       console.log('data in ContactBox', data);
       setCustomerId(data.customerSession.customer_id);
       setTicketData(data.ticket);

@@ -17,9 +17,12 @@ export default function CategorySelect(props) {
       style={style.picker}
       onValueChange={(item) => props.setSelectedCategory(item)}
     >
-      <Picker.Item label="select a category" value="" />
-      <Picker.Item label="complaint" value="complaint" />
-      <Picker.Item label="suggestion" value="suggestion" />
+      <Picker.Item label="select a category" value="5" />
+      <Picker.Item label="Flight infos" value="1" />
+      <Picker.Item label="Change flight" value="2" />
+      <Picker.Item label="Suggestion" value="3" />
+      <Picker.Item label="Complaint" value="4" />
+      <Picker.Item label="Other" value="5" />
     </Picker>
   );
 }
