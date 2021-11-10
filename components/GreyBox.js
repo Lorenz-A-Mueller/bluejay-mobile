@@ -1,3 +1,4 @@
+import { useMutation } from '@apollo/client';
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -7,11 +8,21 @@ import covid_icon from '../assets/covid-icon.png';
 import globe_icon from '../assets/globe-icon.png';
 import plane_icon from '../assets/plane-icon.png';
 import settings_icon from '../assets/settings-icon.png';
+import { deleteSessionMutation } from '../utils/queries';
 
 export default function GreyBox(props) {
   const navigation = useNavigation();
+
+  const [deleteSession] = useMutation(deleteSessionMutation, {
+    onCompleted: (data) => {
+      // for data to be displayed, have to pass it here (not destructured two lines above)
+      console.log('deleteSessionMutation', data);
+    },
+    fetchPolicy: 'network-only',
+  });
+
   const handleLogOutPress = () => {
-    props.setIsLoggedIn(false);
+    deleteSession();
     navigation.navigate('sign-in');
   };
 

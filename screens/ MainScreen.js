@@ -30,13 +30,22 @@ export default function MainScreen(props) {
     validateWhenMounting();
   }, []);
 
-  const [validateWhenMounting] = useLazyQuery(validateSessionTokenQuery, {
-    onCompleted: (data) => console.log('data', data),
-    onError: () => {
-      navigation.navigate('sign-in');
-    },
-    fetchPolicy: 'network-only',
-  });
+  const [validateWhenMounting, { data: validateSessionTokenQueryData }] =
+    useLazyQuery(validateSessionTokenQuery, {
+      onCompleted: () => {
+        console.log(
+          'validateSessionTokenQueryData',
+          validateSessionTokenQueryData,
+        );
+        if (!validateSessionTokenQueryData.customerSession) {
+          navigation.navigate('sign-in');
+        }
+      },
+      onError: () => {
+        navigation.navigate('sign-in');
+      },
+      fetchPolicy: 'network-only',
+    });
 
   const handleSendFirstMessage = (selectedCategory, title, messageText) => {
     setChosenCategory(selectedCategory);

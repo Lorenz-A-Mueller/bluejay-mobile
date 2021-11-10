@@ -75,3 +75,14 @@ export const getEmployeeFirstNameQuery = gql`
     }
   }
 `;
+
+export const deleteSessionMutation = gql`
+  mutation {
+    deleteCustomerSession {
+      id
+      token
+      customer_id
+      expiry_timestamp
+    }
+  }
+`;
