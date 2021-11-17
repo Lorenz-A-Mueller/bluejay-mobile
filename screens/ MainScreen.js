@@ -1,6 +1,5 @@
 import { useLazyQuery, useMutation } from '@apollo/client';
 import { useNavigation } from '@react-navigation/native';
-import { visitWithTypeInfo } from 'graphql';
 import React, { useEffect, useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import transparent_logo from '../assets/full_logo_transparent.png';
@@ -10,21 +9,21 @@ import GreyBox from '../components/GreyBox';
 import {
   createMessageMutation,
   createTicketMutation,
+  getCustomerNameQuery,
   validateSessionTokenQuery,
   validateSessionTokenWhenSendingQuery,
 } from '../utils/queries';
 
 export default function MainScreen(props) {
   const [showContactBox, setShowContactBox] = useState(false);
-  const [ticketId, setTicketId] = useState();
-  const [customerId, setCustomerId] = useState();
   const [chosenCategory, setChosenCategory] = useState('');
   const [chosenTitle, setChosenTitle] = useState('');
   const [messageText, setMessageText] = useState('');
-  const [newMessageId, setNewMessageId] = useState('');
   const [isLoadingAfterSending, setIsLoadingAfterSending] = useState(false);
   const [isCompletedAfterSending, setIsCompletedAfterSending] = useState(false);
   const navigation = useNavigation();
+
+  // validate the sessionToken (in cookies)
 
   useEffect(() => {
     validateWhenMounting();
@@ -33,19 +32,27 @@ export default function MainScreen(props) {
   const [validateWhenMounting, { data: validateSessionTokenQueryData }] =
     useLazyQuery(validateSessionTokenQuery, {
       onCompleted: () => {
-        console.log(
-          'validateSessionTokenQueryData',
-          validateSessionTokenQueryData,
-        );
         if (!validateSessionTokenQueryData.customerSession) {
           navigation.navigate('sign-in');
+        } else {
+          // if successful, get customer first name for displaying
+          getCustomerName({
+            variables: {
+              customerID:
+                validateSessionTokenQueryData.customerSession.customer_id,
+            },
+          });
         }
       },
+      // if not, throw back to sign-in
       onError: () => {
         navigation.navigate('sign-in');
       },
       fetchPolicy: 'network-only',
     });
+
+  const [getCustomerName, { data: getCustomerNameQueryData }] =
+    useLazyQuery(getCustomerNameQuery);
 
   const handleSendFirstMessage = (selectedCategory, title, messageText) => {
     setChosenCategory(selectedCategory);
@@ -54,29 +61,29 @@ export default function MainScreen(props) {
     validate();
   };
 
-  const [validate] = useLazyQuery(validateSessionTokenWhenSendingQuery, {
-    onCompleted: (data) => {
-      setCustomerId(data.customerSession.customer_id);
-    },
-    fetchPolicy: 'network-only',
-  });
+  const [validate, { data: validateSessionTokenWhenSendingQueryData }] =
+    useLazyQuery(validateSessionTokenWhenSendingQuery, {
+      onCompleted: (data) => {
+        createTicket({
+          variables: {
+            customer: data.customerSession.customer_id,
+            category: chosenCategory,
+            title: chosenTitle,
+          },
+        });
+      },
+      onError: () => {},
+      fetchPolicy: 'network-only',
+    });
 
   // once customerId is set by lazyQuery "validate", trigger createMessage; but only once chosenTitle has been set (not directly after mounting).
   // cannot send another message without refreshing (customerId stays the same)
 
-  useEffect(() => {
-    if (customerId) createTicket();
-  }, [customerId]);
-
   const [createTicket] = useMutation(createTicketMutation, {
-    variables: {
-      customer: customerId,
-      category: chosenCategory,
-      title: chosenTitle,
-    },
     onCompleted: (data) => {
-      console.log('data in createTicket', data);
-      setTicketId(data.createNewTicket.id);
+      createMessage({
+        variables: { ticketID: data.createNewTicket.id, content: messageText },
+      });
       setIsLoadingAfterSending(true);
       setTimeout(() => {
         setShowContactBox(false);
@@ -87,37 +94,26 @@ export default function MainScreen(props) {
         }, 2000);
       }, 1000);
     },
+    onError: () => {},
     fetchPolicy: 'network-only',
   });
-
-  useEffect(() => {
-    if (ticketId) {
-      createMessage();
-      // console.log('newMessageId in use effect: ', newMessageId);
-    }
-  }, [ticketId]);
 
   const [createMessage] = useMutation(createMessageMutation, {
-    variables: {
-      ticketID: ticketId,
-      content: messageText,
-    },
-    onCompleted: (data) => {
-      setNewMessageId(data.createNewMessage.id);
-      console.log('data in createMessage: ', data);
-    },
+    onCompleted: (data) => {},
     fetchPolicy: 'network-only',
   });
-
-  const handleContactPress = () => {
-    setShowContactBox((previous) => !previous);
-  };
 
   if (isLoadingAfterSending || isCompletedAfterSending) {
     return (
       <ScrollView>
         <Image source={transparent_logo} style={style.logo} />
-        <Text style={style.header}>Welcome, placeholder!</Text>
+        <Text style={style.header}>
+          Welcome,{' '}
+          {getCustomerNameQueryData
+            ? getCustomerNameQueryData.customer.first_name
+            : null}
+          !
+        </Text>
         {isLoadingAfterSending ? (
           <View style={style.loading_container}>
             <Image source={loading_spinner} style={style.loading_spinner} />
@@ -134,10 +130,16 @@ export default function MainScreen(props) {
   return (
     <ScrollView>
       <Image source={transparent_logo} style={style.logo} />
-      <Text style={style.header}>Welcome, placeholder!</Text>
+      <Text style={style.header}>
+        Welcome,{' '}
+        {getCustomerNameQueryData
+          ? getCustomerNameQueryData.customer.first_name
+          : null}
+        !
+      </Text>
       <GreyBox
         showContactBox={showContactBox}
-        handleContactPress={handleContactPress}
+        handleContactPress={() => setShowContactBox((previous) => !previous)}
       />
       {showContactBox && (
         <ContactBox handleSendFirstMessage={handleSendFirstMessage} />

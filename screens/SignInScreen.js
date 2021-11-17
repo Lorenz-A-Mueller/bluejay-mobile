@@ -3,6 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import {
   Image,
+  KeyboardAvoidingView,
   StyleSheet,
   Text,
   TextInput,
@@ -61,10 +62,11 @@ export default function SignIn(props) {
       setWasPressed(false);
     },
     skip: !wasPressed,
+    fetchPolicy: 'network-only',
   });
 
   return (
-    <View style={style.container}>
+    <KeyboardAvoidingView style={style.container} behavior="position">
       <View style={style.logo_container}>
         <Image style={style.logo} source={transparent_logo} />
       </View>
@@ -111,7 +113,7 @@ export default function SignIn(props) {
           <Text style={style.loading_text}>loading...</Text>
         </View>
       )}
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 

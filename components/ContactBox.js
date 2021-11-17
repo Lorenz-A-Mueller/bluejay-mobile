@@ -93,7 +93,7 @@ export default function ContactBox(props) {
 const style = StyleSheet.create({
   contact_box: {
     backgroundColor: '#E5E5E5',
-    height: 'fit-content',
+    height: 'auto',
     width: 332,
     alignSelf: 'center',
     borderRadius: 12,

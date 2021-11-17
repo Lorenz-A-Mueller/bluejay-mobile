@@ -26,7 +26,7 @@ export const validateSessionTokenWhenSendingQuery = gql`
 `;
 
 export const createTicketMutation = gql`
-  mutation ($customer: ID, $category: String, $title: String) {
+  mutation ($customer: ID!, $category: ID!, $title: String!) {
     createNewTicket(
       customer_id: $customer
       category: $category
@@ -83,6 +83,14 @@ export const deleteSessionMutation = gql`
       token
       customer_id
       expiry_timestamp
+    }
+  }
+`;
+
+export const getCustomerNameQuery = gql`
+  query ($customerID: ID!) {
+    customer(search: { id: $customerID }) {
+      first_name
     }
   }
 `;

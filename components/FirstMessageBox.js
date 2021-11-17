@@ -32,7 +32,7 @@ export default function FirstMessageBox(props) {
         placeholder="Your Message"
         multiline={true}
         // numberOfLines={10}
-        maxLength="1000"
+        maxLength={1000}
         onChangeText={(text) => setMessageText(text)}
         value={messageText}
       />

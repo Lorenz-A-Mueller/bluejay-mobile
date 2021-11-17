@@ -32,17 +32,36 @@ export default function PastMessage(props) {
     fetchPolicy: 'network-only',
   });
   return (
-    <View style={[style.past_message_container, { height: 'fit-content' }]}>
+    <View
+      style={[
+        style.past_message_container,
+        authorFirstName === 'You' && { alignSelf: 'flex-end', marginRight: 24 },
+      ]}
+    >
       <View style={style.header}>
         <View style={style.header_text}>
-          <Text>{authorFirstName}</Text>
-          <Text>{created && created.slice(0, -5)}</Text>
-          <Text>{created && created.slice(-5)}</Text>
+          <Text
+            style={[
+              style.author_text,
+              authorFirstName === 'You' && { alignSelf: 'flex-end' },
+            ]}
+          >
+            {authorFirstName}
+          </Text>
+          <Text
+            style={[
+              style.time_text,
+              authorFirstName === 'You' && { alignSelf: 'flex-end' },
+            ]}
+          >
+            {created ? created.slice(0, -5) : null} -
+            {created ? created.slice(-5) : null}
+          </Text>
         </View>
         <Image style={style.header_image} />
       </View>
       <View style={style.message_box}>
-        <Text>{props.messageData && props.messageData.content}</Text>
+        <Text>{props.messageData ? props.messageData.content : null}</Text>
       </View>
     </View>
   );
@@ -50,14 +69,20 @@ export default function PastMessage(props) {
 
 const style = StyleSheet.create({
   past_message_container: {
-    width: 236,
-    height: 336,
+    width: '70%',
+    alignSelf: 'flex-start',
+    minHeight: 92,
     backgroundColor: '#2799E0',
     borderRadius: 12,
     marginTop: 20,
+    marginLeft: 24,
+    flex: 1,
+    padding: 8,
   },
   header: {},
   header_text: {},
   header_image: {},
-  message_box: {},
+  message_box: { paddingTop: 8 },
+  time_text: { fontSize: 10 },
+  author_text: { fontWeight: 'bold' },
 });

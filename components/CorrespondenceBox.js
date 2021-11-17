@@ -3,6 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import {
   Image,
+  PickerIOSComponent,
   StyleSheet,
   Text,
   TextInput,
@@ -36,6 +37,7 @@ export default function CorrespondenceBox(props) {
 
   const handleSendFurtherMessage = () => {
     createNewMessage();
+    setMessageText('');
   };
 
   const [createNewMessage, { data: createMessageMutationData }] = useMutation(
@@ -51,23 +53,23 @@ export default function CorrespondenceBox(props) {
   );
 
   return (
-    <View style={[style.correspondence_container, { height: 'fit-content' }]}>
+    <View style={[style.correspondence_container]}>
       <Text style={style.title_box}>{props.ticketData.title}</Text>
-      {messages.length &&
-        messages.map((message) => (
-          <PastMessage
-            key={`message-${message.id}`}
-            messageData={message}
-            ticketData={props.ticketData}
-          />
-        ))}
-      {/* <View style={style.message_box}> */}
+      {messages.length
+        ? messages.map((message) => (
+            <PastMessage
+              key={`message-${message.id}`}
+              messageData={message}
+              ticketData={props.ticketData}
+            />
+          ))
+        : null}
       <TextInput
         style={style.message_input}
         placeholder="Your Message"
         multiline={true}
         // numberOfLines={10}
-        maxLength="1000"
+        maxLength={1000}
         onChangeText={(text) => setMessageText(text)}
         value={messageText}
       />
@@ -88,10 +90,11 @@ const style = StyleSheet.create({
     justifyContent: 'center',
     width: 284,
     // height: 512,
-    height: 2000,
+    // height: 2000,
     backgroundColor: 'white',
     marginTop: 48,
     alignItems: 'center',
+    // flex: 1,
   },
 
   title_box: {
@@ -104,6 +107,7 @@ const style = StyleSheet.create({
     fontSize: 16,
     marginTop: 20,
     textAlign: 'center',
+    paddingTop: 8,
   },
 
   message_box: {},
@@ -112,9 +116,13 @@ const style = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'black',
     borderStyle: 'solid',
-    height: 284,
+    minHeight: 92,
+    flex: 1,
     width: 236,
     marginTop: 26,
+    textAlignVertical: 'top',
+    padding: 8,
+    fontSize: 16,
   },
   send_button: {
     backgroundColor: '#2799E0',

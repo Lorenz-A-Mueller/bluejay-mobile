@@ -12,7 +12,8 @@ import SignIn from './screens/SignInScreen';
 
 const link = createHttpLink({
   // uri: 'https://api-bluejay.herokuapp.com/graphql',
-  uri: 'http://localhost:4000/graphql',
+  // uri: 'http://localhost:4000/graphql',
+  uri: 'http://192.168.0.115:4000/graphql',
   credentials: 'include',
 });
 const client = new ApolloClient({
