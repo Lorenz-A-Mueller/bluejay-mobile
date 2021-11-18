@@ -9,6 +9,7 @@ import { StatusBar } from 'expo-status-bar';
 import React, { Fragment, useState } from 'react';
 import MainScreen from './screens/ MainScreen';
 import SignIn from './screens/SignInScreen';
+import SignUp from './screens/SignUpScreen';
 
 const link = createHttpLink({
   // uri: 'https://api-bluejay.herokuapp.com/graphql',
@@ -42,6 +43,7 @@ export default function App() {
             }}
           >
             <Stack.Screen name="sign-in">{(props) => <SignIn />}</Stack.Screen>
+            <Stack.Screen name="sign-up">{(props) => <SignUp />}</Stack.Screen>
             <Stack.Screen name="main-screen">
               {(props) => <MainScreen />}
             </Stack.Screen>

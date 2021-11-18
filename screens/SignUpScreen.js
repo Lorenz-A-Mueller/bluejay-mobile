@@ -1,4 +1,4 @@
-import { gql, useLazyQuery, useQuery } from '@apollo/client';
+import { useLazyQuery, useMutation, useQuery } from '@apollo/client';
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import {
@@ -10,85 +10,89 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import transparent_logo from '../assets/full_logo_transparent.png';
 import loading_spinner from '../assets/spinner.gif';
-import {
-  logInValidationQuery,
-  validateSessionTokenQuery,
-} from '../utils/queries';
+import { createCustomerMutation } from '../utils/queries';
 
-export default function SignIn(props) {
+export default function SignUp() {
   const [accessDenied, setAccessDenied] = useState(false);
-  const [numberInput, setNumberInput] = useState('');
+  const [firstNameInput, setFirstNameInput] = useState('');
+  const [lastNameInput, setLastNameInput] = useState('');
+  const [emailInput, setEmailInput] = useState('');
+  const [phoneNumberInput, setPhoneNumberInput] = useState('');
+  const [dobInput, setDobInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   const [serverError, setServerError] = useState(false);
-  const [wasPressed, setWasPressed] = useState(false);
+  // const [wasPressed, setWasPressed] = useState(false);
   const navigation = useNavigation();
 
-  useEffect(() => {
-    validateWhenMounting();
-  }, []);
-
-  const [validateWhenMounting] = useLazyQuery(validateSessionTokenQuery, {
-    onCompleted: () => {
-      navigation.navigate('main-screen');
+  const [createCustomer, { loading, error, data }] = useMutation(
+    createCustomerMutation,
+    {
+      variables: {
+        firstName: firstNameInput,
+        lastName: lastNameInput,
+        email: emailInput,
+        password: passwordInput,
+        phoneNumber: phoneNumberInput,
+        dob: dobInput,
+      },
+      onCompleted: (data) => {
+        console.log('createCustomerData: ', data);
+      },
+      fetchPolicy: 'network-only',
     },
-    onError: () => {
-      // navigation.navigate('sign-in');
-    },
-    fetchPolicy: 'network-only',
-  });
-
-  // graphQL hook -- gets called on every render -> state var "wasPressed" designed to only allow query after pressing
-
-  const { loading, error, data } = useQuery(logInValidationQuery, {
-    variables: {
-      userNumber: numberInput,
-      userPassword: passwordInput,
-    },
-    onCompleted: () => {
-      console.log('data', data);
-      setWasPressed(false);
-      setNumberInput('');
-      setPasswordInput('');
-      setAccessDenied(false);
-      navigation.navigate('main-screen');
-    },
-    onError: () => {
-      console.log('error: ', error);
-      setNumberInput('');
-      setPasswordInput('');
-      setAccessDenied(true);
-      setWasPressed(false);
-    },
-    skip: !wasPressed,
-    fetchPolicy: 'network-only',
-  });
+  );
 
   return (
-    <KeyboardAvoidingView style={style.container} behavior="position">
+    <View style={style.container}>
       <View style={style.logo_container}>
         <Image style={style.logo} source={transparent_logo} />
       </View>
       {!loading ? (
-        <View
+        <ScrollView
           style={[
-            style.sign_in_container,
+            style.sign_up_container,
             accessDenied &&
               {
                 /* animation shake?  */
               },
           ]}
         >
-          <Text style={style.header}>Sign In</Text>
+          <Text style={style.header}>Sign Up</Text>
           <TextInput
-            style={style.numberInput}
-            placeholder="BlueJay Premium Number"
-            onChangeText={(text) => setNumberInput(text)}
-            value={numberInput}
+            style={style.input}
+            placeholder="First Name"
+            onChangeText={(text) => setFirstNameInput(text)}
+            value={firstNameInput}
           />
           <TextInput
-            style={style.passwordInput}
+            style={style.input}
+            placeholder="Last Name"
+            onChangeText={(text) => setLastNameInput(text)}
+            value={lastNameInput}
+          />
+          <TextInput
+            style={style.input}
+            placeholder="E-Mail"
+            onChangeText={(text) => setEmailInput(text)}
+            value={emailInput}
+          />
+          <TextInput
+            style={style.input}
+            placeholder="phone number"
+            onChangeText={(text) => setPhoneNumberInput(text)}
+            value={phoneNumberInput}
+          />
+          <TextInput
+            style={style.input}
+            placeholder="Date of Birth"
+            onChangeText={(text) => setDobInput(text)}
+            value={dobInput}
+          />
+          <TextInput
+            style={style.input}
             placeholder="Password"
             onChangeText={(text) => setPasswordInput(text)}
             value={passwordInput}
@@ -101,24 +105,19 @@ export default function SignIn(props) {
           )}
           <TouchableOpacity
             style={style.button}
-            onPress={() => setWasPressed(true)}
+            onPress={() => createCustomer()}
           >
-            <Text style={style.button_text}>SIGN IN</Text>
+            <Text style={style.button_text}>SIGN UP</Text>
           </TouchableOpacity>
-          <Text
-            style={style.need_help}
-            onPress={() => navigation.navigate('sign-up')}
-          >
-            Create an Account
-          </Text>
-        </View>
+          <Text style={style.need_help}>Need help?</Text>
+        </ScrollView>
       ) : (
         <View style={style.loading_container}>
           <Image source={loading_spinner} style={style.loading_spinner} />
           <Text style={style.loading_text}>loading...</Text>
         </View>
       )}
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 
@@ -135,13 +134,14 @@ const style = StyleSheet.create({
     marginTop: 56,
     borderRadius: 12,
   },
-  sign_in_container: {
+  sign_up_container: {
     width: 284,
     height: 512,
     marginTop: 56,
     backgroundColor: 'white',
     borderRadius: 12,
-    alignItems: 'center',
+    // alignItems: 'center',
+    flex: 1,
   },
   logo: {
     width: '100%',
@@ -152,14 +152,16 @@ const style = StyleSheet.create({
     marginTop: 40,
     fontSize: 48,
     fontWeight: 'bold',
+    alignSelf: 'center',
   },
-  numberInput: {
+  input: {
     marginTop: 48,
     height: 40,
     width: 236,
     borderWidth: 1,
     padding: 4,
     fontSize: 18,
+    alignSelf: 'center',
   },
   passwordInput: {
     marginTop: 26,
@@ -176,6 +178,7 @@ const style = StyleSheet.create({
     height: 48,
     justifyContent: 'center',
     alignItems: 'center',
+    alignSelf: 'center',
   },
   button_text: {
     color: 'white',
@@ -184,6 +187,7 @@ const style = StyleSheet.create({
   need_help: {
     textDecorationLine: 'underline',
     marginTop: 40,
+    alignSelf: 'center',
   },
   loading_container: {
     width: 284,

@@ -94,3 +94,54 @@ export const getCustomerNameQuery = gql`
     }
   }
 `;
+
+export const createCustomerMutation = gql`
+  mutation (
+    $firstName: String!
+    $lastName: String!
+    $email: String!
+    $password: String!
+    $phoneNumber: String!
+    $dob: Date!
+  ) {
+    createCustomer(
+      first_name: $firstName
+      last_name: $lastName
+      email: $email
+      password: $password
+      phone_number: $phoneNumber
+      dob: $dob
+    ) {
+      id
+      number
+      first_name
+      last_name
+      email
+      phone_number
+      dob
+      status
+    }
+  }
+`;
+
+// export const createCustomerMutation = gql`
+//   mutation {
+//     createCustomer(
+//       first_name: "abc"
+//       last_name: "abc"
+//       email: "abc.abc@asdf"
+//       password: "asdf"
+//       phone_number: "10001"
+//       dob: "12-12-1990"
+//     ) {
+//       id
+//       number
+//       first_name
+//       last_name
+//       email
+//       phone_number
+//       dob
+//       status
+//     }
+//   }
+// `;
