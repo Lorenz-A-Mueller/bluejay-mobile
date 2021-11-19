@@ -19,7 +19,7 @@ import {
 
 export default function SignIn(props) {
   const [accessDenied, setAccessDenied] = useState(false);
-  const [numberInput, setNumberInput] = useState('');
+  const [emailInput, setEmailInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   const [serverError, setServerError] = useState(false);
   const [wasPressed, setWasPressed] = useState(false);
@@ -43,20 +43,20 @@ export default function SignIn(props) {
 
   const { loading, error, data } = useQuery(logInValidationQuery, {
     variables: {
-      userNumber: numberInput,
+      userEmail: emailInput,
       userPassword: passwordInput,
     },
     onCompleted: () => {
       console.log('data', data);
       setWasPressed(false);
-      setNumberInput('');
+      setEmailInput('');
       setPasswordInput('');
       setAccessDenied(false);
       navigation.navigate('main-screen');
     },
     onError: () => {
       console.log('error: ', error);
-      setNumberInput('');
+      setEmailInput('');
       setPasswordInput('');
       setAccessDenied(true);
       setWasPressed(false);
@@ -81,20 +81,23 @@ export default function SignIn(props) {
           ]}
         >
           <Text style={style.header}>Sign In</Text>
+          <Text style={style.label}>E-Mail-Address</Text>
           <TextInput
-            style={style.numberInput}
-            placeholder="BlueJay Premium Number"
-            onChangeText={(text) => setNumberInput(text)}
-            value={numberInput}
+            style={style.emailInput}
+            placeholder="your.email@gmail.com"
+            onChangeText={(text) => setEmailInput(text)}
+            value={emailInput}
           />
+          <Text style={style.label}>Password</Text>
           <TextInput
             style={style.passwordInput}
-            placeholder="Password"
             onChangeText={(text) => setPasswordInput(text)}
             value={passwordInput}
+            textContentType="password"
+            secureTextEntry={true}
           />
           {accessDenied && (
-            <Text style={style.error_text}>Invalid number/password </Text>
+            <Text style={style.error_text}>Invalid email/password </Text>
           )}
           {serverError && (
             <Text style={style.error_text}>Error! Please try later! </Text>
@@ -150,11 +153,17 @@ const style = StyleSheet.create({
   },
   header: {
     marginTop: 40,
+    marginBottom: 12,
     fontSize: 48,
     fontWeight: 'bold',
   },
-  numberInput: {
-    marginTop: 48,
+  label: {
+    alignSelf: 'center',
+    marginTop: 20,
+    marginBottom: 8,
+    fontSize: 16,
+  },
+  emailInput: {
     height: 40,
     width: 236,
     borderWidth: 1,
@@ -162,7 +171,6 @@ const style = StyleSheet.create({
     fontSize: 18,
   },
   passwordInput: {
-    marginTop: 26,
     height: 40,
     width: 236,
     borderWidth: 1,

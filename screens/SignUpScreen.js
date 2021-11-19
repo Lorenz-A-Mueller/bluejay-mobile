@@ -23,7 +23,8 @@ export default function SignUp() {
   const [phoneNumberInput, setPhoneNumberInput] = useState('');
   const [dobInput, setDobInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
-  const [serverError, setServerError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [hasSignedUp, setHasSignedUp] = useState(false);
   // const [wasPressed, setWasPressed] = useState(false);
   const navigation = useNavigation();
 
@@ -40,10 +41,41 @@ export default function SignUp() {
       },
       onCompleted: (data) => {
         console.log('createCustomerData: ', data);
+        setErrorMessage('');
+        setFirstNameInput('');
+        setLastNameInput('');
+        setEmailInput('');
+        setPhoneNumberInput('');
+        setDobInput('');
+        setPasswordInput('');
+        setHasSignedUp(true);
+        setTimeout(() => {
+          setHasSignedUp(false);
+          navigation.navigate('sign-in');
+        }, 4000);
+      },
+      onError: (error) => {
+        console.log('error: ', error);
+        setErrorMessage(error.message);
       },
       fetchPolicy: 'network-only',
     },
   );
+
+  if (hasSignedUp) {
+    return (
+      <View style={style.container}>
+        <View style={style.logo_container}>
+          <Image style={style.logo} source={transparent_logo} />
+        </View>
+        <View style={style.success_message_container}>
+          <Text style={style.success_message_text}>
+            Account created! Please log in.
+          </Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={style.container}>
@@ -61,55 +93,73 @@ export default function SignUp() {
           ]}
         >
           <Text style={style.header}>Sign Up</Text>
+          <Text style={style.label}>First Name</Text>
           <TextInput
             style={style.input}
-            placeholder="First Name"
+            placeholder="Your First Name"
             onChangeText={(text) => setFirstNameInput(text)}
             value={firstNameInput}
+            accessibilityLabel="First Name"
+            labelStyle={{ fontSize: 20 }}
           />
+          <Text style={style.label}>Last Name</Text>
           <TextInput
             style={style.input}
-            placeholder="Last Name"
+            placeholder="Your Last Name"
             onChangeText={(text) => setLastNameInput(text)}
+            accessibilityLabel="Last Name"
             value={lastNameInput}
           />
+          <Text style={style.label}>E-Mail</Text>
           <TextInput
             style={style.input}
-            placeholder="E-Mail"
+            placeholder="your.email@gmail.com"
             onChangeText={(text) => setEmailInput(text)}
+            accessibilityLabel="E-Mail"
             value={emailInput}
           />
+          <Text style={style.label}>Phone Number</Text>
           <TextInput
             style={style.input}
-            placeholder="phone number"
+            placeholder="00234234323"
             onChangeText={(text) => setPhoneNumberInput(text)}
             value={phoneNumberInput}
+            accessibilityLabel="Phone Number"
+            keyboardType="numeric"
           />
+          <Text style={style.label}>Date of Birth (MM-DD-YYYY)</Text>
           <TextInput
             style={style.input}
-            placeholder="Date of Birth"
+            placeholder="01-01-1970"
             onChangeText={(text) => setDobInput(text)}
+            accessibilityLabel="Date of Birth"
             value={dobInput}
+            // keyboardType="numeric"
           />
+          <Text style={style.label}>Password</Text>
           <TextInput
             style={style.input}
-            placeholder="Password"
             onChangeText={(text) => setPasswordInput(text)}
+            accessibilityLabel="Password"
             value={passwordInput}
+            textContentType="password"
+            secureTextEntry={true}
           />
-          {accessDenied && (
-            <Text style={style.error_text}>Invalid number/password </Text>
-          )}
-          {serverError && (
-            <Text style={style.error_text}>Error! Please try later! </Text>
-          )}
+          {errorMessage ? (
+            <Text style={style.error_text}>{errorMessage}</Text>
+          ) : null}
           <TouchableOpacity
             style={style.button}
             onPress={() => createCustomer()}
           >
             <Text style={style.button_text}>SIGN UP</Text>
           </TouchableOpacity>
-          <Text style={style.need_help}>Need help?</Text>
+          <Text
+            style={style.need_help}
+            onPress={() => navigation.navigate('sign-in')}
+          >
+            Already have an account? Log In!
+          </Text>
         </ScrollView>
       ) : (
         <View style={style.loading_container}>
@@ -150,12 +200,19 @@ const style = StyleSheet.create({
   },
   header: {
     marginTop: 40,
+    marginBottom: 12,
     fontSize: 48,
     fontWeight: 'bold',
     alignSelf: 'center',
   },
+  label: {
+    alignSelf: 'center',
+    marginTop: 20,
+    marginBottom: 8,
+    fontSize: 16,
+  },
   input: {
-    marginTop: 48,
+    // marginTop: 48,
     height: 40,
     width: 236,
     borderWidth: 1,
@@ -186,7 +243,7 @@ const style = StyleSheet.create({
   },
   need_help: {
     textDecorationLine: 'underline',
-    marginTop: 40,
+    marginTop: 20,
     alignSelf: 'center',
   },
   loading_container: {
@@ -212,6 +269,22 @@ const style = StyleSheet.create({
     marginTop: 26,
     fontWeight: 'bold',
     fontSize: 16,
+    alignSelf: 'center',
+  },
+  success_message_container: {
+    backgroundColor: '#E5E5E5',
+    height: 400,
+    width: 332,
+    alignSelf: 'center',
+    borderRadius: 12,
+    marginTop: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  success_message_text: {
+    fontWeight: 'bold',
+    fontSize: 20,
+    marginTop: 12,
   },
 });
 

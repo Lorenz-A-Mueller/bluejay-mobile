@@ -1,8 +1,8 @@
 import { gql } from '@apollo/client';
 
 export const logInValidationQuery = gql`
-  query ($userNumber: String!, $userPassword: String!) {
-    customer(search: { number: [$userNumber, $userPassword] }) {
+  query ($userEmail: String!, $userPassword: String!) {
+    customer(search: { emailAndPassword: [$userEmail, $userPassword] }) {
       last_name
     }
   }
