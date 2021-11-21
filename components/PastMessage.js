@@ -11,7 +11,9 @@ export default function PastMessage(props) {
   console.log('props in single message', props);
 
   useEffect(() => {
-    setCreated(transformTimestampIntoDatetime(props.messageData.created));
+    if (props.messageData.created) {
+      setCreated(transformTimestampIntoDatetime(props.messageData.created));
+    }
     console.log(
       'props.messageData.responder_id',
       props.messageData.responder_id,

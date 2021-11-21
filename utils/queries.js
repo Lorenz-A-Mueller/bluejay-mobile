@@ -124,24 +124,11 @@ export const createCustomerMutation = gql`
   }
 `;
 
-// export const createCustomerMutation = gql`
-//   mutation {
-//     createCustomer(
-//       first_name: "abc"
-//       last_name: "abc"
-//       email: "abc.abc@asdf"
-//       password: "asdf"
-//       phone_number: "10001"
-//       dob: "12-12-1990"
-//     ) {
-//       id
-//       number
-//       first_name
-//       last_name
-//       email
-//       phone_number
-//       dob
-//       status
-//     }
-//   }
-// `;
+export const changeTicketLastResponseMutation = gql`
+  mutation ($ticketID: ID!) {
+    changeTicketLastResponse(id: $ticketID) {
+      id
+      last_response
+    }
+  }
+`;

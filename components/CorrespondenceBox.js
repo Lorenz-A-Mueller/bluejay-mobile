@@ -10,53 +10,66 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { createMessageMutation, getMessagesQuery } from '../utils/queries';
+import {
+  changeTicketLastResponseMutation,
+  createMessageMutation,
+} from '../utils/queries';
 import PastMessage from './PastMessage';
 
 export default function CorrespondenceBox(props) {
   const [messageText, setMessageText] = useState('');
-  const [messages, setMessages] = useState([]);
+  // const [messages, setMessages] = useState([]);
 
-  console.log('messages', messages);
+  console.log('props.messages', props.messages);
 
-  useEffect(() => {
-    getMessages();
-  }, []);
+  // useEffect(() => {
+  //   getMessages();
+  // }, []);
 
-  const [getMessages, { data: getMessagesQueryData }] = useLazyQuery(
-    getMessagesQuery,
-    {
-      variables: { ticketID: props.ticketData.id },
-      onCompleted: () => {
-        console.log(getMessagesQueryData);
-        setMessages(getMessagesQueryData.messages);
-      },
-      fetchPolicy: 'network-only',
-    },
-  );
+  // const [getMessages, { data: getMessagesQueryData }] = useLazyQuery(
+  //   getMessagesQuery,
+  //   {
+  //     variables: { ticketID: props.ticketData.id },
+  //     onCompleted: () => {
+  //       console.log(getMessagesQueryData);
+  //       setMessages(getMessagesQueryData.messages);
+  //     },
+  //     fetchPolicy: 'network-only',
+  //   },
+  // );
 
   const handleSendFurtherMessage = () => {
     createNewMessage();
     setMessageText('');
   };
 
-  const [createNewMessage, { data: createMessageMutationData }] = useMutation(
-    createMessageMutation,
-    {
-      variables: { ticketID: props.ticketData.id, content: messageText },
-      onCompleted: () => {
-        console.log(createMessageMutationData);
-        getMessages();
-      },
-      fetchPolicy: 'network-only',
+  const [
+    createNewMessage,
+    { data: createMessageMutationData, loading: createMessageMutationLoading },
+  ] = useMutation(createMessageMutation, {
+    variables: { ticketID: props.ticketData.id, content: messageText },
+    onCompleted: () => {
+      props.getMessages();
+      setLastResponse();
     },
-  );
+    fetchPolicy: 'network-only',
+  });
+
+  const [setLastResponse] = useMutation(changeTicketLastResponseMutation, {
+    variables: {
+      ticketID: props.ticketData.id,
+    },
+    onCompleted: (thisData) => {
+      console.log('setLastResponseData: ', thisData);
+    },
+    fetchPolicy: 'network-only',
+  });
 
   return (
     <View style={[style.correspondence_container]}>
       <Text style={style.title_box}>{props.ticketData.title}</Text>
-      {messages.length
-        ? messages.map((message) => (
+      {props.messages.length
+        ? props.messages.map((message) => (
             <PastMessage
               key={`message-${message.id}`}
               messageData={message}
@@ -64,6 +77,9 @@ export default function CorrespondenceBox(props) {
             />
           ))
         : null}
+      {createMessageMutationLoading ? (
+        <Text style={style.loading_message}>sending Message ...</Text>
+      ) : null}
       <TextInput
         style={style.message_input}
         placeholder="Your Message"
@@ -80,7 +96,6 @@ export default function CorrespondenceBox(props) {
         <Text style={style.send_button_text}>Send</Text>
       </TouchableOpacity>
     </View>
-    // </View>
   );
 }
 
@@ -137,5 +152,10 @@ const style = StyleSheet.create({
   send_button_text: {
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  loading_message: {
+    fontWeight: 'bold',
+    marginTop: 20,
+    alignSelf: 'center',
   },
 });

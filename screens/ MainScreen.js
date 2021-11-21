@@ -10,6 +10,8 @@ import {
   createMessageMutation,
   createTicketMutation,
   getCustomerNameQuery,
+  getMessagesQuery,
+  getTicketByCustomerIdQuery,
   validateSessionTokenQuery,
   validateSessionTokenWhenSendingQuery,
 } from '../utils/queries';
@@ -21,6 +23,9 @@ export default function MainScreen(props) {
   const [messageText, setMessageText] = useState('');
   const [isLoadingAfterSending, setIsLoadingAfterSending] = useState(false);
   const [isCompletedAfterSending, setIsCompletedAfterSending] = useState(false);
+  const [ticketData, setTicketData] = useState({});
+  const [customerId, setCustomerId] = useState('');
+  const [messages, setMessages] = useState([]);
   const navigation = useNavigation();
 
   // validate the sessionToken (in cookies)
@@ -36,6 +41,13 @@ export default function MainScreen(props) {
           navigation.navigate('sign-in');
         } else {
           // if successful, get customer first name for displaying
+          console.log(
+            'validateSessionTokenQueryData.customerSession.customer_id: ',
+            validateSessionTokenQueryData.customerSession.customer_id,
+          );
+          setCustomerId(
+            validateSessionTokenQueryData.customerSession.customer_id,
+          );
           getCustomerName({
             variables: {
               customerID:
@@ -51,8 +63,14 @@ export default function MainScreen(props) {
       fetchPolicy: 'network-only',
     });
 
-  const [getCustomerName, { data: getCustomerNameQueryData }] =
-    useLazyQuery(getCustomerNameQuery);
+  const [getCustomerName, { data: getCustomerNameQueryData }] = useLazyQuery(
+    getCustomerNameQuery,
+    {
+      onCompleted: () => {
+        // getTicketByCustomerId();
+      },
+    },
+  );
 
   const handleSendFirstMessage = (selectedCategory, title, messageText) => {
     setChosenCategory(selectedCategory);
@@ -91,6 +109,7 @@ export default function MainScreen(props) {
         setIsCompletedAfterSending(true);
         setTimeout(() => {
           setIsCompletedAfterSending(false);
+          // getTicketByCustomerId();
         }, 2000);
       }, 1000);
     },
@@ -103,9 +122,58 @@ export default function MainScreen(props) {
     fetchPolicy: 'network-only',
   });
 
+  useEffect(() => {
+    console.log('customerId: ', customerId);
+    if (customerId) {
+      getTicketByCustomerId();
+    }
+  }, [customerId]);
+
+  useEffect(() => {
+    if ('id' in ticketData) {
+      getMessages();
+    }
+  }, [ticketData]);
+
+  const [getMessages, { data: getMessagesQueryData }] = useLazyQuery(
+    getMessagesQuery,
+    {
+      variables: { ticketID: ticketData.id },
+      onCompleted: () => {
+        setMessages(getMessagesQueryData.messages);
+      },
+      fetchPolicy: 'network-only',
+    },
+  );
+
+  //
+
+  const [getTicketByCustomerId, { data: getTicketByCustomerIdData }] =
+    useLazyQuery(getTicketByCustomerIdQuery, {
+      variables: {
+        customerID: customerId,
+      },
+      onCompleted: () => {
+        console.log('TICKET - data in ContactBox', getTicketByCustomerIdData);
+        setTicketData(getTicketByCustomerIdData.ticket || {});
+        console.log(
+          'getTicketByCustomerIdData.ticket: ',
+          getTicketByCustomerIdData.ticket,
+        );
+      },
+      onError: () => {
+        console.log('here');
+      },
+
+      fetchPolicy: 'network-only',
+    });
+
   if (isLoadingAfterSending || isCompletedAfterSending) {
     return (
-      <ScrollView>
+      <ScrollView
+        ref={(ref) => (scrollView = ref)}
+        onContentSizeChange={() => scrollView.scrollToEnd({ animated: true })}
+      >
         <Image source={transparent_logo} style={style.logo} />
         <Text style={style.header}>
           Welcome,{' '}
@@ -139,10 +207,21 @@ export default function MainScreen(props) {
       </Text>
       <GreyBox
         showContactBox={showContactBox}
-        handleContactPress={() => setShowContactBox((previous) => !previous)}
+        handleContactPress={() => {
+          setShowContactBox((previous) => !previous);
+          getTicketByCustomerId();
+        }}
+        ticketData={ticketData}
+        messages={messages}
+        getMessages={getMessages}
       />
       {showContactBox && (
-        <ContactBox handleSendFirstMessage={handleSendFirstMessage} />
+        <ContactBox
+          handleSendFirstMessage={handleSendFirstMessage}
+          ticketData={ticketData}
+          messages={messages}
+          getMessages={getMessages}
+        />
       )}
     </ScrollView>
   );

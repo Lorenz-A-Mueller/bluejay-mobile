@@ -14,8 +14,8 @@ import SignUp from './screens/SignUpScreen';
 const link = createHttpLink({
   // uri: 'https://api-bluejay.herokuapp.com/graphql',
   // uri: 'http://localhost:4000/graphql',
-  // uri: 'http://192.168.0.115:4000/graphql',   // zu Hause
-  uri: 'http://192.168.1.101:4000/graphql', // Markhof
+  uri: 'http://192.168.0.115:4000/graphql', // zu Hause
+  // uri: 'http://192.168.1.101:4000/graphql', // Markhof
   credentials: 'include',
 });
 const client = new ApolloClient({
@@ -23,8 +23,8 @@ const client = new ApolloClient({
   link,
 });
 
-SplashScreen.preventAutoHideAsync();
-setTimeout(SplashScreen.hideAsync, 3000);
+// SplashScreen.preventAutoHideAsync();
+// setTimeout(SplashScreen.hideAsync, 3000);
 
 const Stack = createStackNavigator();
 

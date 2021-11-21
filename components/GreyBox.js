@@ -1,6 +1,6 @@
 import { useMutation } from '@apollo/client';
 import { useNavigation } from '@react-navigation/native';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import bird_icon from '../assets/bird-icon.png';
 import contact_icon from '../assets/contact-icon.png';
@@ -8,10 +8,19 @@ import covid_icon from '../assets/covid-icon.png';
 import globe_icon from '../assets/globe-icon.png';
 import plane_icon from '../assets/plane-icon.png';
 import settings_icon from '../assets/settings-icon.png';
-import { deleteSessionMutation } from '../utils/queries';
+import {
+  deleteSessionMutation,
+  getTicketByCustomerIdQuery,
+} from '../utils/queries';
 
 export default function GreyBox(props) {
   const navigation = useNavigation();
+
+  console.log('props.messages in gray box: ', props.messages);
+
+  useEffect(() => {
+    // getTicketByCustomerId();
+  }, []);
 
   const [deleteSession] = useMutation(deleteSessionMutation, {
     onCompleted: (data) => {
@@ -20,6 +29,10 @@ export default function GreyBox(props) {
     },
     fetchPolicy: 'network-only',
   });
+
+  // **
+
+  //** */
 
   const handleLogOutPress = () => {
     deleteSession();
@@ -52,8 +65,16 @@ export default function GreyBox(props) {
             style.tile,
             props.showContactBox && { backgroundColor: 'white' },
           ]}
-          onPress={props.handleContactPress}
+          onPress={() => {
+            props.handleContactPress();
+            props.getMessages();
+          }}
         >
+          {props.messages.length &&
+          props.messages[props.messages.length - 1].responder_id ? (
+            <View style={style.notification} />
+          ) : null}
+
           <Image source={contact_icon} style={style.image} />
           <Text style={style.text}>Contact</Text>
         </TouchableOpacity>
@@ -125,5 +146,15 @@ const style = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
     marginTop: 0,
+  },
+  notification: {
+    width: 20,
+    height: 20,
+    borderRadius: 100,
+    backgroundColor: 'red',
+    alignSelf: 'flex-end',
+    position: 'absolute',
+    top: -10,
+    right: -10,
   },
 });

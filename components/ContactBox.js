@@ -2,7 +2,14 @@ import { useLazyQuery } from '@apollo/client';
 import { useNavigation } from '@react-navigation/native';
 import { isConstValueNode } from 'graphql';
 import React, { useEffect, useState } from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Image,
+  KeyboardAvoidingView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import mail_icon from '../assets/mail-icon.png';
 import telephone_icon from '../assets/telephone-icon.png';
 import {
@@ -15,9 +22,7 @@ import FirstMessageBox from './FirstMessageBox';
 export default function ContactBox(props) {
   const [showMessageBox, setShowMessageBox] = useState(false);
   const [customerId, setCustomerId] = useState('');
-  const [ticketData, setTicketData] = useState({});
   const navigation = useNavigation();
-  console.log('ticketData', ticketData);
 
   useEffect(() => {
     validateWhenMounting();
@@ -29,9 +34,6 @@ export default function ContactBox(props) {
         navigation.navigate('sign-in');
         return;
       }
-      console.log('data in ContactBox', data);
-      setCustomerId(data.customerSession.customer_id);
-      setTicketData(data.ticket);
     },
     onError: () => {
       navigation.navigate('sign-in');
@@ -41,22 +43,8 @@ export default function ContactBox(props) {
 
   const handleOnPress = () => {
     setShowMessageBox((previous) => !previous);
-    getTicketByCustomerId();
     console.log('customerId', customerId);
   };
-
-  const [getTicketByCustomerId, { data: getTicketByCustomerIdData }] =
-    useLazyQuery(getTicketByCustomerIdQuery, {
-      variables: {
-        customerID: customerId,
-      },
-      onCompleted: () => {
-        console.log('TICKET - data in ContactBox', getTicketByCustomerIdData);
-        setTicketData(getTicketByCustomerIdData.ticket);
-      },
-      onError: () => {},
-      fetchPolicy: 'network-only',
-    });
 
   return (
     <View style={[style.contact_box, !showMessageBox && { height: 236 }]}>
@@ -70,18 +58,24 @@ export default function ContactBox(props) {
           style={[style.tile, showMessageBox && { backgroundColor: 'white' }]}
           onPress={() => handleOnPress()}
         >
+          {props.messages.length &&
+          props.messages[props.messages.length - 1].responder_id ? (
+            <View style={style.notification} />
+          ) : null}
           <Image source={mail_icon} style={style.image} />
           <Text style={style.text}>Message</Text>
         </TouchableOpacity>
       </View>
-      {showMessageBox && !ticketData ? (
+      {showMessageBox && !props.ticketData.id ? (
         <FirstMessageBox
           handleSendFirstMessage={props.handleSendFirstMessage}
         />
-      ) : showMessageBox && ticketData ? (
+      ) : showMessageBox && props.ticketData.id ? (
         <CorrespondenceBox
-          ticketData={ticketData}
+          ticketData={props.ticketData}
           handleSendFirstMessage={props.handleSendFirstMessage}
+          messages={props.messages}
+          getMessages={props.getMessages}
         />
       ) : (
         <View />
@@ -127,5 +121,15 @@ const style = StyleSheet.create({
   text: {
     fontWeight: 'bold',
     fontSize: 16,
+  },
+  notification: {
+    width: 20,
+    height: 20,
+    borderRadius: 100,
+    backgroundColor: 'red',
+    alignSelf: 'flex-end',
+    position: 'absolute',
+    top: -10,
+    right: -10,
   },
 });

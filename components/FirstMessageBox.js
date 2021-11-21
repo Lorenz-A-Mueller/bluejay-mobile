@@ -2,6 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
 import {
   Image,
+  KeyboardAvoidingView,
   StyleSheet,
   Text,
   TextInput,
@@ -31,7 +32,6 @@ export default function FirstMessageBox(props) {
         style={style.message_input}
         placeholder="Your Message"
         multiline={true}
-        // numberOfLines={10}
         maxLength={1000}
         onChangeText={(text) => setMessageText(text)}
         value={messageText}
@@ -63,14 +63,17 @@ const style = StyleSheet.create({
     height: 40,
     width: 236,
     marginTop: 8,
+    padding: 8,
   },
   message_input: {
     borderWidth: 1,
     borderColor: 'black',
     borderStyle: 'solid',
-    height: 284,
+    height: 236,
     width: 236,
     marginTop: 26,
+    textAlignVertical: 'top',
+    padding: 8,
   },
   send_button: {
     backgroundColor: '#2799E0',
